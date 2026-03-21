@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWS Claude AI Platform — Governance and Implementation Standard v0.9</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #1a2744;
+  --navy-mid:  #243560;
+  --blue:      #2e5fa5;
+  --accent:    #c8a04a;
+  --accent-lt: #e8c87a;
+  --bg:        #f4f2ee;
+  --bg-card:   #fdfcfa;
+  --text:      #1c1c1e;
+  --text-mid:  #3d3d40;
+  --text-mute: #6b6b70;
+  --border:    #dbd8d0;
+  --teal:      #0f6e56;
+  --teal-lt:   #e1f5ee;
+  --coral:     #993c1d;
+  --coral-lt:  #faece7;
+  --purple:    #534ab7;
+  --purple-lt: #eeedfe;
+  --amber:     #854f0b;
+  --amber-lt:  #faeeda;
+  --green:     #375623;
+  --green-lt:  #e2efda;
+  --red:       #c0392b;
+  --red-lt:    #fff0f0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7}
+
+/* Nav */
+#nav{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--navy);overflow-y:auto;z-index:100;display:flex;flex-direction:column;padding:0 0 2rem}
+#nav-header{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:.5rem}
+#nav-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--accent);letter-spacing:.02em;line-height:1.3;margin-bottom:.25rem}
+#nav-sub{font-size:.7rem;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.nav-section{padding:.35rem 0}
+.nav-section-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:.6rem 1.25rem .2rem;font-weight:600}
+.nav-link{display:flex;align-items:center;gap:.5rem;padding:.42rem 1.25rem;color:rgba(255,255,255,.65);text-decoration:none;font-size:.8rem;font-weight:400;transition:all .15s;border-left:2px solid transparent;cursor:pointer}
+.nav-link:hover{color:white;background:rgba(255,255,255,.06)}
+.nav-link.active{color:var(--accent-lt);border-left-color:var(--accent);background:rgba(200,160,74,.1)}
+.nav-link .num{font-family:'IBM Plex Mono',monospace;font-size:.68rem;opacity:.5;min-width:1.6rem}
+
+/* Main */
+#main{margin-left:260px;min-height:100vh}
+
+/* Hero */
+#hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 50%,#1e3a1a 100%);padding:5rem 4rem 4rem;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;top:-40%;right:-10%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(200,160,74,.08) 0%,transparent 70%);pointer-events:none}
+#hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.hero-eyebrow{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1rem}
+.hero-title{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:white;line-height:1.15;margin-bottom:.5rem}
+.hero-subtitle{font-family:'Playfair Display',serif;font-size:1.3rem;color:rgba(255,255,255,.6);font-weight:400;margin-bottom:2.5rem}
+.hero-meta{display:flex;gap:2rem;flex-wrap:wrap}
+.hero-meta-item{display:flex;flex-direction:column;gap:.15rem}
+.hero-meta-label{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600}
+.hero-meta-value{font-size:.82rem;color:rgba(255,255,255,.8);font-weight:400}
+
+/* Status badge on hero */
+.hero-status{display:inline-flex;align-items:center;gap:.4rem;background:rgba(200,160,74,.15);border:1px solid rgba(200,160,74,.3);border-radius:4px;padding:.25rem .75rem;margin-bottom:1.5rem}
+.hero-status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-lt)}
+.hero-status-text{font-size:.7rem;color:var(--accent-lt);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+
+/* Content */
+.content{max-width:860px;margin:0 auto;padding:3rem 4rem 6rem}
+
+/* Sections */
+.section{margin-bottom:.5rem}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;background:var(--navy);color:white;cursor:pointer;user-select:none;border-radius:6px 6px 0 0;transition:background .15s;margin-top:2.5rem}
+.section-header:hover{background:var(--navy-mid)}
+.section-header.collapsed{border-radius:6px}
+.section-num{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--accent);margin-right:.75rem;font-weight:500}
+.section-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;flex:1}
+.section-chevron{width:20px;height:20px;transition:transform .25s;opacity:.6}
+.section-header.collapsed .section-chevron{transform:rotate(-90deg)}
+.section-body{background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;padding:2rem 2.5rem 2.5rem;overflow:hidden}
+.section-body.collapsed{display:none}
+
+/* Subsections */
+.subsection{margin-top:2rem}
+.subsection-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.85rem;cursor:pointer;user-select:none}
+.subsection-header:hover .subsection-title{color:var(--blue)}
+.subsection-num{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--blue);font-weight:500}
+.subsection-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--navy);transition:color .15s;flex:1}
+.sub-chevron{width:14px;height:14px;transition:transform .2s;opacity:.4}
+.subsection-header.collapsed .sub-chevron{transform:rotate(-90deg)}
+.subsection-body.collapsed{display:none}
+
+/* Typography */
+p{margin-bottom:.9rem;color:var(--text-mid);font-size:.92rem}
+p strong{color:var(--text);font-weight:600}
+ul,ol{padding-left:1.4rem;margin-bottom:.9rem}
+li{margin-bottom:.35rem;color:var(--text-mid);font-size:.92rem;line-height:1.6}
+li strong{color:var(--text)}
+code{background:#f0eee8;padding:.1rem .35rem;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:.85em}
+
+/* Callout */
+.callout{display:flex;gap:0;margin:1.25rem 0;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.callout-label{padding:1rem;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;min-width:80px;text-align:center;display:flex;align-items:center;justify-content:center}
+.callout-body{padding:.85rem 1.1rem;font-size:.88rem;color:var(--text-mid);line-height:1.65;flex:1}
+.callout.info .callout-label{background:var(--blue);color:white}
+.callout.info .callout-body{background:#eef4fd}
+.callout.warn .callout-label{background:var(--amber);color:white}
+.callout.warn .callout-body{background:var(--amber-lt)}
+.callout.key .callout-label{background:var(--navy);color:var(--accent)}
+.callout.key .callout-body{background:#f0effa}
+.callout.danger .callout-label{background:var(--red);color:white}
+.callout.danger .callout-body{background:var(--red-lt)}
+.callout.success .callout-label{background:var(--teal);color:white}
+.callout.success .callout-body{background:var(--teal-lt)}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin:1.2rem 0;border-radius:6px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+thead tr{background:var(--navy)}
+thead th{padding:.75rem 1rem;text-align:left;color:white;font-weight:600;font-size:.78rem;letter-spacing:.04em}
+tbody tr:nth-child(even){background:#f8f7f4}
+tbody tr:nth-child(odd){background:var(--bg-card)}
+tbody tr:hover{background:#eff3fb}
+td{padding:.65rem 1rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-mid);line-height:1.55}
+td:first-child{font-weight:500;color:var(--text)}
+.badge{display:inline-block;padding:.2rem .55rem;border-radius:3px;font-size:.7rem;font-weight:700;letter-spacing:.05em}
+.badge-green{background:var(--green-lt);color:var(--green)}
+.badge-amber{background:var(--amber-lt);color:var(--amber)}
+.badge-red{background:var(--red-lt);color:var(--red)}
+
+/* Principle cards */
+.principle-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin:1.25rem 0}
+.principle-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:1.1rem 1.25rem;border-left:4px solid var(--navy)}
+.principle-num{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--accent);font-weight:600;margin-bottom:.25rem}
+.principle-title{font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.4rem}
+.principle-body{font-size:.82rem;color:var(--text-mid);line-height:1.55}
+
+/* Personas */
+.persona-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:1.2rem 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.persona-col{border-right:1px solid var(--border)}
+.persona-col:last-child{border-right:none}
+.persona-head{background:var(--navy);padding:.85rem .9rem}
+.persona-role{font-size:.78rem;font-weight:600;color:white;margin-bottom:.1rem}
+.persona-desc{font-size:.65rem;color:rgba(255,255,255,.45)}
+.persona-row{padding:.7rem .9rem;border-top:1px solid var(--border)}
+.persona-row-label{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute);margin-bottom:.25rem}
+.persona-row-value{font-size:.78rem;color:var(--text-mid);line-height:1.45}
+.persona-surface{background:#eef1fb}
+.persona-mcp{background:#f8f7f4}
+.persona-plan{background:var(--teal-lt)}
+.persona-ad{background:#f0f8f4;font-family:'IBM Plex Mono',monospace}
+
+/* Two-col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.info-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:1rem 1.1rem}
+.info-card-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-mute);margin-bottom:.35rem}
+.info-card-value{font-size:.88rem;color:var(--text);line-height:1.5}
+
+/* Control matrix */
+.control-row{display:grid;grid-template-columns:1.8fr 1.8fr 2fr 1.5fr;gap:0;border:1px solid var(--border);margin-top:-1px}
+.control-row:first-child{border-radius:6px 6px 0 0;background:var(--navy)}
+.control-row:last-child{border-radius:0 0 6px 6px}
+.control-row:first-child .ctrl-cell{color:white;font-weight:600;font-size:.78rem;letter-spacing:.04em;padding:.75rem 1rem}
+.ctrl-cell{padding:.65rem 1rem;border-right:1px solid var(--border);font-size:.83rem;color:var(--text-mid);vertical-align:top}
+.ctrl-cell:last-child{border-right:none}
+.ctrl-cell:first-child{font-weight:500;color:var(--text)}
+.ctrl-even{background:#f8f7f4}
+.ctrl-odd{background:var(--bg-card)}
+
+/* Sign-off table */
+.signoff-table{width:100%;border-collapse:collapse;margin:1.25rem 0}
+.signoff-table th{background:var(--navy);color:white;padding:.75rem 1rem;text-align:left;font-size:.78rem;letter-spacing:.04em}
+.signoff-table td{padding:1rem;border:1px solid var(--border);font-size:.88rem;vertical-align:top}
+.signoff-table tr:nth-child(even) td{background:#f8f7f4}
+.signoff-sig{min-height:48px;display:block}
+
+/* TOC */
+#toc-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:1.5rem 1.75rem;margin-bottom:2.5rem}
+#toc-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--navy);margin-bottom:1rem}
+.toc-list{display:flex;flex-direction:column;gap:.15rem}
+.toc-item{display:flex;gap:.5rem;align-items:baseline}
+.toc-num{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--blue);min-width:2rem}
+.toc-link{font-size:.85rem;color:var(--blue);text-decoration:none;transition:color .15s}
+.toc-link:hover{color:var(--navy);text-decoration:underline}
+.toc-dots{flex:1;border-bottom:1px dotted var(--border);margin-bottom:3px}
+
+/* Scrollbar */
+#nav::-webkit-scrollbar{width:4px}
+#nav::-webkit-scrollbar-track{background:transparent}
+#nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+@media print{#nav{display:none}#main{margin-left:0}.section-body.collapsed{display:block !important}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div id="nav-header">
+    <div id="nav-logo">McDermott<br>Will &amp; Schulte</div>
+    <div id="nav-sub">Claude AI Platform</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Document</div>
+    <a class="nav-link active" onclick="navScrollTo('hero')"><span class="num">—</span>Overview</a>
+    <a class="nav-link" onclick="navScrollTo('s1')"><span class="num">1</span>Executive Summary</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Governance</div>
+    <a class="nav-link" onclick="navScrollTo('s2')"><span class="num">2</span>Access Control</a>
+    <a class="nav-link" onclick="navScrollTo('s3')"><span class="num">3</span>Security Architecture</a>
+    <a class="nav-link" onclick="navScrollTo('s4')"><span class="num">4</span>Data Handling &amp; GDPR</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Standards</div>
+    <a class="nav-link" onclick="navScrollTo('s5')"><span class="num">5</span>Technology Stack</a>
+    <a class="nav-link" onclick="navScrollTo('s6')"><span class="num">6</span>Delivery Pipeline</a>
+    <a class="nav-link" onclick="navScrollTo('s7')"><span class="num">7</span>Operational Governance</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Appendices</div>
+    <a class="nav-link" onclick="navScrollTo('sa')"><span class="num">A</span>Glossary</a>
+    <a class="nav-link" onclick="navScrollTo('sb')"><span class="num">B</span>Approvals</a>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="hero">
+    <div class="hero-eyebrow">Governance and Implementation Standard — v0.9 · March 2026</div>
+    <div class="hero-status"><div class="hero-status-dot"></div><div class="hero-status-text">Draft — Pending Risk / GC + IT Security sign-off</div></div>
+    <div class="hero-title">Claude AI Platform</div>
+    <div class="hero-subtitle">Governance and Implementation Standard</div>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Document owner</span>
+        <span class="hero-meta-value">AI Strategy &amp; Technology</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Relationship to firm AI policy</span>
+        <span class="hero-meta-value">Separate implementation standard — companion to firm-wide AI Use Policy</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Applies to</span>
+        <span class="hero-meta-value">Cowork · Code · API · MCP connectors · all Claude-integrated applications</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">First review due</span>
+        <span class="hero-meta-value">90 days post sign-off (iManage pilot lessons)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- TOC -->
+    <div id="toc-panel">
+      <div id="toc-title">Contents</div>
+      <div class="toc-list">
+        <div class="toc-item"><span class="toc-num">1</span><a class="toc-link" onclick="navScrollTo('s1')">Executive Summary</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">2</span><a class="toc-link" onclick="navScrollTo('s2')">Access Control and Persona Model</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">3</span><a class="toc-link" onclick="navScrollTo('s3')">Security Architecture and MCP Governance</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">4</span><a class="toc-link" onclick="navScrollTo('s4')">Data Handling, Confidentiality, and GDPR</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">5</span><a class="toc-link" onclick="navScrollTo('s5')">Technology Stack Standards</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">6</span><a class="toc-link" onclick="navScrollTo('s6')">Delivery Pipeline and Change Management</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">7</span><a class="toc-link" onclick="navScrollTo('s7')">Operational Governance and Incident Response</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">A</span><a class="toc-link" onclick="navScrollTo('sa')">Glossary</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">B</span><a class="toc-link" onclick="navScrollTo('sb')">Approvals</a><span class="toc-dots"></span></div>
+      </div>
+    </div>
+
+    <!-- ══ S1: Executive Summary ══ -->
+    <div class="section" id="s1">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">01</span>
+        <span class="section-title">Executive Summary</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p><strong>Purpose.</strong> This standard defines how McDermott Will &amp; Schulte deploys, governs, and secures the Anthropic Claude AI platform — including Claude Cowork, Claude Code, and custom MCP connectors — across the firm's technology environment. It establishes access control requirements, security architecture standards, data handling obligations, and operational governance for all Claude-related systems.</p>
+
+        <p><strong>Why this matters.</strong> Claude Cowork and Claude Code are agentic AI tools: they can autonomously read, write, and act on documents and systems on behalf of users. Unlike passive AI chatbots, these tools can access iManage matter workspaces, send messages, file documents, and execute multi-step workflows. Governance appropriate for a chatbot is insufficient for an agentic platform.</p>
+
+        <p><strong>Relationship to existing firm AI policy.</strong> McDermott's firm-wide AI Use Policy governs what attorneys and staff may use AI for. This document governs how the Claude platform is built, secured, and operated. The two documents are complementary and should be read together by anyone deploying or administering Claude-integrated systems.</p>
+
+        <div class="principle-grid">
+          <div class="principle-card">
+            <div class="principle-num">PRINCIPLE 1</div>
+            <div class="principle-title">Identity-first</div>
+            <div class="principle-body">Every Claude action is traceable to an authenticated user via Azure Active Directory. No service accounts or shared credentials are used for matter-sensitive operations.</div>
+          </div>
+          <div class="principle-card">
+            <div class="principle-num">PRINCIPLE 2</div>
+            <div class="principle-title">Least privilege</div>
+            <div class="principle-body">Users access only the systems and data their role and matter assignments require. MCP connector access is provisioned by Azure AD group, not self-service.</div>
+          </div>
+          <div class="principle-card">
+            <div class="principle-num">PRINCIPLE 3</div>
+            <div class="principle-title">Audit by default</div>
+            <div class="principle-body">All MCP tool calls — including which matters were accessed, by whom, and when — are logged to the firm's security infrastructure and retained per the firm's records management policy.</div>
+          </div>
+          <div class="principle-card">
+            <div class="principle-num">PRINCIPLE 4</div>
+            <div class="principle-title">Legal privilege first</div>
+            <div class="principle-body">The iManage connector and all document-handling plugins respect existing iManage ACLs and ethical wall configurations. Claude cannot access a matter a user does not already have access to.</div>
+          </div>
+        </div>
+
+        <div class="callout key">
+          <div class="callout-label">GC / RISK</div>
+          <div class="callout-body">This document requires sign-off from Risk Management and the General Counsel's office before production deployment of any MCP connector that touches client matter data. Sections 3 and 4 contain the controls most relevant to professional responsibility and client confidentiality obligations.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S2: Access Control ══ -->
+    <div class="section" id="s2">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">02</span>
+        <span class="section-title">Access Control and Persona Model</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">2.1</span>
+            <span class="subsection-title">Governing principle</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Access to Claude products and MCP connectors is provisioned through Azure Active Directory group membership. No user may self-provision access to Claude Code, API keys, MCP connectors, or Cowork plugins beyond their assigned persona tier. Requests for elevated access follow the standard IT change request process and require manager approval.</p>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">2.2</span>
+            <span class="subsection-title">Persona definitions</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Four personas are defined. Every user is assigned to exactly one persona group. Persona assignment is based on role, not seniority — a senior partner who does not require programmatic access remains in the Attorney persona.</p>
+            <div class="persona-grid" style="margin-top:1rem">
+              <div class="persona-col">
+                <div class="persona-head"><div class="persona-role">Attorneys / knowledge workers</div><div class="persona-desc">Primary consumers</div></div>
+                <div class="persona-row persona-surface"><div class="persona-row-label">Primary surface</div><div class="persona-row-value">Claude Cowork (desktop + firm plugins)</div></div>
+                <div class="persona-row persona-mcp"><div class="persona-row-label">MCP access</div><div class="persona-row-value">iManage (own matters only), M365 read</div></div>
+                <div class="persona-row persona-plan"><div class="persona-row-label">Plan tier</div><div class="persona-row-value">Enterprise</div></div>
+                <div class="persona-row persona-ad"><div class="persona-row-label">Azure AD group</div><div class="persona-row-value">mwe-claude-attorneys</div></div>
+              </div>
+              <div class="persona-col">
+                <div class="persona-head"><div class="persona-role">Legal ops / power users</div><div class="persona-desc">Configurators</div></div>
+                <div class="persona-row persona-surface"><div class="persona-row-label">Primary surface</div><div class="persona-row-value">Cowork + advanced plugins + Claude.ai</div></div>
+                <div class="persona-row persona-mcp"><div class="persona-row-label">MCP access</div><div class="persona-row-value">iManage, M365, internal APIs (read)</div></div>
+                <div class="persona-row persona-plan"><div class="persona-row-label">Plan tier</div><div class="persona-row-value">Enterprise + Max</div></div>
+                <div class="persona-row persona-ad"><div class="persona-row-label">Azure AD group</div><div class="persona-row-value">mwe-claude-powerusers</div></div>
+              </div>
+              <div class="persona-col">
+                <div class="persona-head"><div class="persona-role">AI solutions analysts</div><div class="persona-desc">Builders</div></div>
+                <div class="persona-row persona-surface"><div class="persona-row-label">Primary surface</div><div class="persona-row-value">Cowork + Claude.ai + Claude Code (light)</div></div>
+                <div class="persona-row persona-mcp"><div class="persona-row-label">MCP access</div><div class="persona-row-value">All approved connectors + staging</div></div>
+                <div class="persona-row persona-plan"><div class="persona-row-label">Plan tier</div><div class="persona-row-value">Enterprise + Max</div></div>
+                <div class="persona-row persona-ad"><div class="persona-row-label">Azure AD group</div><div class="persona-row-value">mwe-claude-analysts</div></div>
+              </div>
+              <div class="persona-col">
+                <div class="persona-head"><div class="persona-role">Developers / DevOps</div><div class="persona-desc">Platform builders</div></div>
+                <div class="persona-row persona-surface"><div class="persona-row-label">Primary surface</div><div class="persona-row-value">Claude Code + Cowork + API keys</div></div>
+                <div class="persona-row persona-mcp"><div class="persona-row-label">MCP access</div><div class="persona-row-value">All connectors + dev environments</div></div>
+                <div class="persona-row persona-plan"><div class="persona-row-label">Plan tier</div><div class="persona-row-value">Enterprise + Max</div></div>
+                <div class="persona-row persona-ad"><div class="persona-row-label">Azure AD group</div><div class="persona-row-value">mwe-claude-developers</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">2.3</span>
+            <span class="subsection-title">Access provisioning rules</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <ul>
+              <li><strong>Azure AD group membership is the sole provisioning mechanism.</strong> Manual access grants outside this process are prohibited.</li>
+              <li><strong>SCIM provisioning</strong> from Azure AD to the Anthropic Enterprise admin panel ensures that account deactivation propagates automatically, typically within one provisioning cycle.</li>
+              <li><strong>Ethical wall enforcement:</strong> attorneys subject to an iManage ethical wall are automatically excluded from the corresponding matter workspace. The MCP connector inherits this restriction by passing the user's own OAuth token — not a service account — to iManage Cloud.</li>
+              <li><strong>Plugin marketplace access</strong> in Cowork is controlled via the admin Customize panel. Practice group plugins are visible only to the corresponding Azure AD group. Attorneys cannot install arbitrary plugins from outside the firm marketplace.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">2.4</span>
+            <span class="subsection-title">Privileged access — developers and analysts</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <ul>
+              <li>API keys are issued per-developer, never shared, and rotated on a 90-day cycle or on personnel change, whichever is sooner.</li>
+              <li>API keys are stored in Azure Key Vault. They are never stored in source code, environment files committed to Azure Repos, or shared via Teams or email.</li>
+              <li>Claude Code access on developer workstations is provisioned via the <code>mwe-claude-developers</code> Azure AD group. Workstations must be MDM-enrolled and meet the firm's endpoint security policy.</li>
+              <li>AI Solutions Analysts receive Claude Code access scoped to non-production environments. Production MCP connector deployment requires developer persona.</li>
+              <li>All API usage is logged and attributed to the issuing key. Anomalous usage patterns trigger a Sentinel alert.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S3: Security Architecture ══ -->
+    <div class="section" id="s3">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">03</span>
+        <span class="section-title">Security Architecture and MCP Governance</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.1</span>
+            <span class="subsection-title">MCP governance gateway</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>All MCP connector traffic routes through a governance gateway hosted on Azure Container Apps. The gateway is not optional and cannot be bypassed. It performs four functions:</p>
+            <ul>
+              <li><strong>Allowlist enforcement:</strong> only connectors explicitly listed in the organizational allowlist may be invoked. Attempts to invoke unlisted MCP servers are blocked and logged.</li>
+              <li><strong>Credential management:</strong> connector credentials are retrieved from Azure Key Vault at runtime. No connector stores credentials locally or in its container image.</li>
+              <li><strong>Audit logging:</strong> every MCP tool call is logged with timestamp, user identity (Azure AD object ID), connector name, tool name, input parameters (sanitized), and response status. Logs forwarded to Microsoft Sentinel.</li>
+              <li><strong>Prompt injection detection:</strong> the gateway inspects tool call results for instruction-like content before returning them to Claude. Flagged results are quarantined and reviewed before any action is taken.</li>
+            </ul>
+            <div class="callout danger">
+              <div class="callout-label">SECURITY</div>
+              <div class="callout-body">Prompt injection is a material risk for agentic AI systems. Malicious content embedded in a document Claude reads from iManage could instruct Claude to take unintended actions — filing a document to the wrong matter, forwarding content externally. The gateway's injection detection and the requirement for user confirmation on irreversible actions are the primary mitigations.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.2</span>
+            <span class="subsection-title">MCP connector security requirements</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Each MCP connector must meet the following requirements before production deployment:</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Control</th><th>Mechanism</th><th>Who approves</th><th>Review cadence</th></tr></thead>
+                <tbody>
+                  <tr><td>User token passthrough</td><td>Connector passes user's own OAuth token to backend (not service account)</td><td>IT Security</td><td>Per deployment</td></tr>
+                  <tr><td>Credential storage</td><td>All credentials in Azure Key Vault; none in code or config files</td><td>IT Security + Engineering lead</td><td>Quarterly audit</td></tr>
+                  <tr><td>Least-privilege API scope</td><td>OAuth scopes limited to minimum required for defined tool set</td><td>IT Security</td><td>Per deployment</td></tr>
+                  <tr><td>Code review</td><td>All connector code reviewed by Engineering lead and IT Security</td><td>Engineering lead</td><td>Per deployment</td></tr>
+                  <tr><td>Container isolation</td><td>Each connector in its own Azure Container App with its own managed identity</td><td>Engineering lead</td><td>Per deployment</td></tr>
+                  <tr><td>CVE monitoring</td><td>Container images scanned on build and weekly; critical CVEs patched within 72 hours</td><td>Engineering / DevOps</td><td>Weekly automated</td></tr>
+                  <tr><td>Audit log validation</td><td>Connector produces expected log output verified in staging before production</td><td>Engineering lead</td><td>Per deployment</td></tr>
+                  <tr><td>Penetration test</td><td>New connectors touching client matter data undergo security assessment before go-live</td><td>IT Security</td><td>Per deployment</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.3</span>
+            <span class="subsection-title">Cowork desktop app controls</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <ul>
+              <li>The Cowork Chrome extension is restricted to an allowlisted set of domains, managed via MDM policy and reviewed quarterly. Attorneys may not add domains to the allowlist.</li>
+              <li>File system access granted to Cowork is scoped to designated working folders only.</li>
+              <li>Scheduled tasks created in Cowork must be reviewed and approved by a manager before activation. Unreviewed scheduled tasks are disabled after 48 hours.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.4</span>
+            <span class="subsection-title">Claude Code controls</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <ul>
+              <li>Claude Code is provisioned only to MDM-enrolled developer workstations meeting the firm's endpoint security policy.</li>
+              <li><code>CLAUDE.md</code> files in each repository define the scope of Claude Code's operation. Changes to CLAUDE.md require the same review process as production code changes.</li>
+              <li>Claude Code subagents committed to <code>.claude/agents/</code> are treated as production code and subject to the full code review and pipeline process.</li>
+              <li>Claude Code must not be used to access, process, or transmit client data from outside the firm's managed environment.</li>
+              <li>MCP servers available to Claude Code in each project are explicitly declared in CLAUDE.md and restricted to connectors approved for that project.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S4: Data Handling ══ -->
+    <div class="section" id="s4">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">04</span>
+        <span class="section-title">Data Handling, Confidentiality, and GDPR</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">4.1</span>
+            <span class="subsection-title">Client confidentiality</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <ul>
+              <li>Client matter data must not be processed by Claude in ways inconsistent with the firm's engagement terms or applicable confidentiality rules.</li>
+              <li>Attorneys are responsible for ensuring that matter content submitted to Claude is appropriate to share with an AI system under the client's engagement terms.</li>
+              <li>Claude output incorporating client matter content — summaries, drafts, analysis — must be reviewed by a qualified attorney before external use. Claude output is never final work product without attorney review.</li>
+              <li>The iManage connector's user-token-passthrough architecture ensures Claude cannot access matter documents beyond what the authenticated user is permitted to see.</li>
+            </ul>
+            <div class="callout info">
+              <div class="callout-label">RPC 1.6</div>
+              <div class="callout-body">Attorneys must exercise professional judgment about whether submitting specific matter content to an AI system is consistent with their duty of confidentiality. This platform standard provides the technical controls to support that obligation — it does not alter it.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">4.2</span>
+            <span class="subsection-title">Data residency and processing location</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Data type / location</th><th>Commitment</th></tr></thead>
+                <tbody>
+                  <tr><td>Anthropic API processing</td><td>Requests processed by Anthropic infrastructure. Under the enterprise agreement, Anthropic does not use firm data to train models. Data residency subject to Anthropic's current data processing terms — IT Security maintains the current version.</td></tr>
+                  <tr><td>MCP connector data</td><td>All MCP connector code and the governance gateway are hosted on Azure within the firm's existing Azure tenancy. Data processed by connectors transits within Azure infrastructure before reaching the Anthropic API.</td></tr>
+                  <tr><td>GDPR applicability</td><td>Where Claude processes personal data of EU/EEA data subjects, the firm's existing GDPR compliance framework applies. The Anthropic enterprise agreement includes appropriate data processing terms. Cross-border transfer queries should be directed to the firm's Privacy team.</td></tr>
+                  <tr><td>Audit log retention</td><td>MCP audit logs retained for a minimum of 12 months in Microsoft Sentinel, consistent with the firm's security log retention policy.</td></tr>
+                  <tr><td>No training on firm data</td><td>Under the current Anthropic enterprise agreement, the firm's data is not used to train Anthropic's models. This commitment must be verified at each contract renewal by IT Security and Risk Management.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">4.3</span>
+            <span class="subsection-title">Prohibited uses</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>The following uses are prohibited under this standard, irrespective of the firm-wide AI Use Policy:</p>
+            <ul>
+              <li>Processing client data on non-MDM-enrolled or personal devices.</li>
+              <li>Sharing API keys, OAuth tokens, or MCP connector credentials outside the approved credential management process.</li>
+              <li>Using Claude to draft, send, or file external communications without attorney review.</li>
+              <li>Configuring MCP connectors to access systems not on the organizational allowlist.</li>
+              <li>Using Claude Code or the Anthropic API outside the firm's managed Azure environment for work involving client matter data.</li>
+              <li>Bypassing or disabling audit logging for any Claude operation.</li>
+              <li>Sharing Claude output containing client matter content with third parties without appropriate confidentiality protections.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S5: Technology Stack ══ -->
+    <div class="section" id="s5">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">05</span>
+        <span class="section-title">Technology Stack Standards</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>The following technologies are approved for use in Claude-integrated application development. Use of technologies outside this list requires IT Security and Engineering lead approval before adoption.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Technology</th><th>Role</th><th>Usage notes</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>React + TypeScript</td><td>Front-end</td><td>SPFx portals, standalone Azure Static Web Apps</td><td><span class="badge badge-green">Approved — existing</span></td></tr>
+              <tr><td>.NET (C#)</td><td>Middle tier</td><td>Business logic APIs, Azure App Service, MCP connector adapters for internal systems</td><td><span class="badge badge-green">Approved — existing</span></td></tr>
+              <tr><td>SQL Server</td><td>Data</td><td>Transactional data, matter database. Exposed via .NET API layer only — never directly via MCP</td><td><span class="badge badge-green">Approved — existing</span></td></tr>
+              <tr><td>Azure (platform)</td><td>Infrastructure</td><td>App Service, Container Apps, Key Vault, AD, Monitor, Sentinel, Blob Storage</td><td><span class="badge badge-green">Approved — existing</span></td></tr>
+              <tr><td>SharePoint Online / SPFx</td><td>Hosting</td><td>Portal and dashboard front-ends only. Not suitable for agentic workflows or server-side AI logic</td><td><span class="badge badge-green">Approved — portals only</span></td></tr>
+              <tr><td>Node.js / TypeScript</td><td>MCP servers</td><td>Primary language for custom MCP connector development</td><td><span class="badge badge-amber">Approved — new</span></td></tr>
+              <tr><td>Python</td><td>AI pipelines</td><td>RAG pipelines, document processing, embedding generation, AI agent orchestration</td><td><span class="badge badge-amber">Approved — new</span></td></tr>
+              <tr><td>Azure Container Apps</td><td>MCP hosting</td><td>Isolated hosting for each MCP connector and the governance gateway</td><td><span class="badge badge-amber">Approved — new</span></td></tr>
+              <tr><td>Azure AI Search</td><td>Search / RAG</td><td>Hybrid semantic and keyword search over firm document corpus</td><td><span class="badge badge-amber">Approved — new</span></td></tr>
+              <tr><td>Docker</td><td>Dev tooling</td><td>Environment parity across Mac and Windows developer workstations</td><td><span class="badge badge-amber">Approved — new</span></td></tr>
+              <tr><td>Azure Blob Storage</td><td>Data</td><td>Document staging, embedding storage, pipeline intermediates</td><td><span class="badge badge-amber">Approved — new</span></td></tr>
+              <tr><td>PostgreSQL / pgvector</td><td>Vector storage</td><td>Deferred. Reassess at 12-month review if Azure AI Search is over-engineered for specific use cases</td><td><span class="badge" style="background:#eee;color:#555">Deferred</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S6: Delivery Pipeline ══ -->
+    <div class="section" id="s6">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">06</span>
+        <span class="section-title">Delivery Pipeline and Change Management</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">6.1</span>
+            <span class="subsection-title">Claude Code development standards</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <ul>
+              <li>Every repository must contain a <code>CLAUDE.md</code> file defining: repository purpose, coding standards, MCP servers in scope, iManage workspace IDs, systems off-limits, test requirements, security rules, and deploy gating policy.</li>
+              <li>Changes to <code>CLAUDE.md</code> are treated as production code changes and require pull request review by the Engineering lead.</li>
+              <li>Subagents committed to <code>.claude/agents/</code> are treated as production code.</li>
+              <li>Claude Code operates in Plan mode by default for non-trivial changes. Claude proposes; engineers decide.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">6.2</span>
+            <span class="subsection-title">Azure DevOps pipeline requirements</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Six pipeline stages are required for all Claude-integrated application repositories:</p>
+            <ol>
+              <li><strong>PR review</strong> — a Claude Code PR review subagent runs automatically on every pull request, flagging security issues, data handling concerns, and CLAUDE.md deviations.</li>
+              <li><strong>Build and test</strong> — standard Azure Pipelines build with automated test suite. Claude Code test generation subagent maintains coverage for new MCP tool implementations.</li>
+              <li><strong>Security scan</strong> — container image scanning and static analysis on every build. Critical findings block promotion.</li>
+              <li><strong>Pre-deploy gate</strong> — Claude Code subagent validates MCP connector configurations against the allowlist and verifies audit logging is functional before promoting to staging.</li>
+              <li><strong>Staging validation</strong> — all deployments promote to staging before production, using non-production iManage workspaces and sandboxed M365 tenancy.</li>
+              <li><strong>Production release</strong> — gated release requiring Engineering lead approval. No direct-to-production deployments permitted.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">6.3</span>
+            <span class="subsection-title">MCP connector deployment process</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>New MCP connectors must complete the following process before production deployment:</p>
+            <ul>
+              <li>Connector specification document reviewed by IT Security and Engineering lead</li>
+              <li>Code review completed with security checklist (Section 3.2)</li>
+              <li>Penetration assessment for connectors touching client matter data</li>
+              <li>Connector added to organizational allowlist in the MCP governance gateway</li>
+              <li>Staging validation including audit log verification</li>
+              <li>Risk Management notification for connectors accessing matter data</li>
+              <li>Production deployment via Azure DevOps gated release pipeline</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S7: Operational Governance ══ -->
+    <div class="section" id="s7">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">07</span>
+        <span class="section-title">Operational Governance and Incident Response</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">7.1</span>
+            <span class="subsection-title">Governance roles</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Role</th><th>Responsibilities</th></tr></thead>
+                <tbody>
+                  <tr><td>AI Strategy &amp; Technology (owner)</td><td>Maintains this standard; coordinates between Engineering, IT Security, and Risk Management; approves technology additions; chairs quarterly review.</td></tr>
+                  <tr><td>IT Security</td><td>Reviews and approves MCP connector deployments; manages CVE monitoring and response; reviews audit logs on a risk basis; owns penetration assessment process.</td></tr>
+                  <tr><td>Risk Management / GC</td><td>Signs off on this standard and material updates; reviews data handling sections at each renewal of the Anthropic enterprise agreement; advises on professional responsibility implications.</td></tr>
+                  <tr><td>Engineering lead</td><td>Technical authority for connector code, CLAUDE.md standards, pipeline configuration, and technology stack decisions within the approved list.</td></tr>
+                  <tr><td>Practice group leads</td><td>Approve plugin marketplace access for their practice group; escalate attorney concerns about Claude outputs or behavior.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">7.2</span>
+            <span class="subsection-title">Incident response</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Incident type</th><th>Response</th></tr></thead>
+                <tbody>
+                  <tr><td>Unauthorized matter access via MCP</td><td>Immediate connector suspension → IT Security investigation within 4 hours → Risk Management and affected attorney notification within 24 hours → client notification assessment per professional responsibility guidance</td></tr>
+                  <tr><td>Credential exposure (API key / OAuth token)</td><td>Immediate key/token revocation → Azure Key Vault rotation → audit log review for unauthorized usage → IT Security incident report within 48 hours</td></tr>
+                  <tr><td>Critical CVE in deployed connector</td><td>Patch and redeploy within 72 hours; connector suspended if patch unavailable within timeline</td></tr>
+                  <tr><td>Claude output causing potential client harm</td><td>Escalation to Risk Management and GC within 2 hours → attorney review of affected work product → client notification assessment</td></tr>
+                  <tr><td>Prompt injection detected by gateway</td><td>Quarantine of affected tool call result → IT Security notification → review of connector producing suspicious content</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">7.3</span>
+            <span class="subsection-title">Review and update cycle</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <div class="two-col">
+              <div class="info-card">
+                <div class="info-card-label">Quarterly</div>
+                <div class="info-card-value">Technology stack review · MCP connector security checklist · plugin marketplace audit · Azure AD group membership validation · Sentinel alert rule tuning</div>
+              </div>
+              <div class="info-card">
+                <div class="info-card-label">Annually</div>
+                <div class="info-card-value">Full document review · Anthropic enterprise agreement data processing terms verification · penetration assessment of production connectors · persona model review against current org structure</div>
+              </div>
+            </div>
+            <div class="info-card" style="margin-top:.75rem">
+              <div class="info-card-label">On trigger — update required when</div>
+              <div class="info-card-value">New MCP connector deployment · Anthropic product material changes · CVE incident · professional responsibility guidance change affecting AI use · personnel change in governance roles</div>
+            </div>
+            <div class="callout success" style="margin-top:1rem">
+              <div class="callout-label">NEXT REVIEW</div>
+              <div class="callout-body">This document is due for its first formal review 90 days after initial sign-off, to incorporate lessons from the iManage MCP connector pilot deployment. Subsequent reviews follow the quarterly / annual cadence above.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Appendix A: Glossary ══ -->
+    <div class="section" id="sa">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">A</span>
+        <span class="section-title">Glossary</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+            <tbody>
+              <tr><td>Claude Cowork</td><td>Anthropic's desktop AI productivity platform for knowledge workers. Supports multi-step agentic tasks, file access, MCP connectors, and a private plugin marketplace.</td></tr>
+              <tr><td>Claude Code</td><td>Anthropic's agentic coding tool operating in the terminal. Used by developers and AI solutions analysts for software development, MCP connector building, and pipeline automation.</td></tr>
+              <tr><td>MCP (Model Context Protocol)</td><td>An open standard that allows Claude to connect to and act on external systems via a defined tool interface. Connectors expose named tools Claude can invoke.</td></tr>
+              <tr><td>MCP connector</td><td>A software component implementing the MCP server specification for a specific external system (iManage, M365, etc.). Each connector exposes a set of named tools.</td></tr>
+              <tr><td>MCP governance gateway</td><td>The firm's centralized proxy through which all MCP connector traffic routes. Enforces allowlists, manages credentials, logs tool calls, and detects prompt injection.</td></tr>
+              <tr><td>CLAUDE.md</td><td>A project-level file giving Claude Code persistent context about a repository: purpose, standards, MCP servers in scope, and operational constraints.</td></tr>
+              <tr><td>Subagent</td><td>A specialized Claude Code agent committed to .claude/agents/ in a repository. Performs a specific recurring task automatically in the CI/CD pipeline.</td></tr>
+              <tr><td>Ethical wall</td><td>An information barrier in iManage preventing specified users from accessing specific matter workspaces. Inherited by the MCP connector via user token passthrough.</td></tr>
+              <tr><td>Prompt injection</td><td>An attack where malicious instructions in content Claude reads attempt to redirect Claude's actions. The governance gateway detects and quarantines suspicious results.</td></tr>
+              <tr><td>SCIM</td><td>System for Cross-domain Identity Management. Used to automatically provision and deprovision Claude accounts based on Azure AD group membership.</td></tr>
+              <tr><td>RAG</td><td>Retrieval-Augmented Generation. Claude retrieves relevant documents from a search index before generating a response, grounding answers in actual firm content.</td></tr>
+              <tr><td>User token passthrough</td><td>The iManage connector design pattern where the user's own OAuth token (not a service account) is passed to iManage, so Claude inherits the user's existing access controls.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Appendix B: Approvals ══ -->
+    <div class="section" id="sb">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">B</span>
+        <span class="section-title">Approvals</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>This standard requires the following approvals before taking effect. By signing below, each approver confirms they have reviewed the sections of this document relevant to their area of responsibility and are satisfied that the governance controls described are appropriate for the firm's risk profile and professional obligations.</p>
+
+        <table class="signoff-table" style="margin-top:1.5rem">
+          <thead>
+            <tr><th style="width:30%">Role</th><th style="width:25%">Name</th><th style="width:25%">Signature</th><th style="width:20%">Date</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Risk Management / General Counsel</strong></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+            </tr>
+            <tr>
+              <td><strong>IT Security (CISO or delegate)</strong></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+            </tr>
+            <tr>
+              <td><strong>AI Strategy &amp; Technology (document owner)</strong></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+            </tr>
+            <tr>
+              <td><strong>Engineering Lead</strong></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+              <td><span class="signoff-sig"></span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout info" style="margin-top:1.5rem">
+          <div class="callout-label">VERSION</div>
+          <div class="callout-body">v0.9 — Initial draft for review (March 2026). Document owner: AI Strategy &amp; Technology. Companion document: Claude AI Platform — Technical Architecture and Recommendations v1.0. Next scheduled review: 90 days post sign-off.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleSection(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('collapsed');
+  updateNav();
+}
+function toggleSub(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('collapsed');
+}
+function navScrollTo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.classList.contains('section')) {
+    const h = el.querySelector('.section-header');
+    const b = el.querySelector('.section-body');
+    if (h && b && b.classList.contains('collapsed')) {
+      h.classList.remove('collapsed');
+      b.classList.remove('collapsed');
+    }
+  }
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function updateNav() {
+  const sections = document.querySelectorAll('.section');
+  const links = document.querySelectorAll('.nav-link');
+  const scrollY = window.scrollY + 120;
+  let activeId = 'hero';
+  sections.forEach(s => { if (s.offsetTop <= scrollY) activeId = s.id; });
+  links.forEach(l => {
+    l.classList.remove('active');
+    const t = l.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    if (t === activeId || (activeId === 'hero' && t === 'hero')) l.classList.add('active');
+  });
+}
+window.addEventListener('scroll', updateNav);
+document.querySelectorAll('.section-body').forEach(b => b.classList.remove('collapsed'));
+document.querySelectorAll('.section-header').forEach(h => h.classList.remove('collapsed'));
+document.querySelectorAll('.subsection-body').forEach(b => b.classList.remove('collapsed'));
+document.querySelectorAll('.subsection-header').forEach(h => h.classList.remove('collapsed'));
+</script>
+</body>
+</html>

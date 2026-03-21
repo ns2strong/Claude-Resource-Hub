@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWS Claude — Solution Handoff &amp; Lifecycle Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#1a2744; --navy-mid:#243560; --blue:#2e5fa5; --blue-lt:#4a7cc9;
+  --accent:#c8a04a; --accent-lt:#e8c87a;
+  --bg:#f4f2ee; --bg-card:#fdfcfa;
+  --text:#1c1c1e; --text-mid:#3d3d40; --text-mute:#6b6b70;
+  --border:#dbd8d0;
+  --teal:#0f6e56; --teal-lt:#e1f5ee;
+  --coral:#993c1d; --coral-lt:#faece7;
+  --purple:#534ab7; --purple-lt:#eeedfe;
+  --amber:#854f0b; --amber-lt:#faeeda;
+  --green:#375623; --green-lt:#e2efda;
+  --red:#c0392b; --red-lt:#fff0f0;
+  /* Tier colours */
+  --cowork-bg:#f0e8ff; --cowork-bd:#7c3aed; --cowork-tx:#4c1d95;
+  --code-bg:#e8f4fd;   --code-bd:#1565c0;   --code-tx:#0d3c6e;
+  --hybrid-bg:#fff3e0; --hybrid-bd:#e65100; --hybrid-tx:#7f2700;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7}
+
+/* Nav */
+#nav{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--navy);overflow-y:auto;z-index:100;display:flex;flex-direction:column;padding:0 0 2rem}
+#nav-header{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.5rem}
+#nav-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--accent);letter-spacing:.02em;line-height:1.3;margin-bottom:.25rem}
+#nav-sub{font-size:.7rem;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.nsl{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:.6rem 1.25rem .2rem;font-weight:600}
+.nl{display:flex;align-items:center;gap:.5rem;padding:.42rem 1.25rem;color:rgba(255,255,255,.65);text-decoration:none;font-size:.8rem;font-weight:400;transition:all .15s;border-left:2px solid transparent;cursor:pointer}
+.nl:hover{color:white;background:rgba(255,255,255,.06)}
+.nl.active{color:var(--accent-lt);border-left-color:var(--accent);background:rgba(200,160,74,.1)}
+.nl .num{font-family:'IBM Plex Mono',monospace;font-size:.68rem;opacity:.5;min-width:1.8rem}
+#nav::-webkit-scrollbar{width:4px}
+#nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+#main{margin-left:260px;min-height:100vh}
+
+/* Hero */
+#hero{background:linear-gradient(135deg,#0d1f3c 0%,#1a2744 45%,#1a3520 100%);padding:5rem 4rem 4rem;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;top:-30%;right:-5%;width:680px;height:680px;border-radius:50%;background:radial-gradient(circle,rgba(200,160,74,.07) 0%,transparent 65%);pointer-events:none}
+#hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.he{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1rem}
+.ht{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:white;line-height:1.15;margin-bottom:.5rem}
+.hs{font-family:'Playfair Display',serif;font-size:1.3rem;color:rgba(255,255,255,.55);margin-bottom:2.5rem}
+.hm{display:flex;gap:2rem;flex-wrap:wrap}
+.hmi{display:flex;flex-direction:column;gap:.15rem}
+.hml{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600}
+.hmv{font-size:.82rem;color:rgba(255,255,255,.8)}
+
+.content{max-width:900px;margin:0 auto;padding:3rem 4rem 6rem}
+
+/* Sections */
+.sec{margin-bottom:.5rem}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;background:var(--navy);color:white;cursor:pointer;user-select:none;border-radius:6px 6px 0 0;transition:background .15s;margin-top:2.5rem}
+.sh:hover{background:var(--navy-mid)}
+.sh.col{border-radius:6px}
+.sn{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--accent);margin-right:.75rem}
+.st{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;flex:1}
+.sc{width:20px;height:20px;transition:transform .25s;opacity:.6}
+.sh.col .sc{transform:rotate(-90deg)}
+.sb{background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;padding:2rem 2.5rem 2.5rem}
+.sb.col{display:none}
+
+/* Subsections */
+.sub{margin-top:1.75rem}
+.subh{display:flex;align-items:center;gap:.5rem;margin-bottom:.85rem;cursor:pointer;user-select:none}
+.subh:hover .subt{color:var(--blue)}
+.subnum{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--blue);font-weight:500}
+.subt{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--navy);transition:color .15s;flex:1}
+.subc{width:14px;height:14px;transition:transform .2s;opacity:.4}
+.subh.col .subc{transform:rotate(-90deg)}
+.subb.col{display:none}
+
+p{margin-bottom:.9rem;color:var(--text-mid);font-size:.92rem}
+p strong{color:var(--text);font-weight:600}
+ul,ol{padding-left:1.4rem;margin-bottom:.9rem}
+li{margin-bottom:.35rem;color:var(--text-mid);font-size:.92rem;line-height:1.6}
+li strong{color:var(--text)}
+code{background:#f0eee8;padding:.1rem .35rem;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:.84em}
+h3{font-size:.85rem;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.08em;margin:1.5rem 0 .6rem}
+
+/* Callout */
+.callout{display:flex;margin:1.25rem 0;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.cl{padding:.85rem 1rem;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;min-width:76px;text-align:center;display:flex;align-items:center;justify-content:center}
+.cb{padding:.85rem 1.1rem;font-size:.88rem;color:var(--text-mid);line-height:1.65;flex:1}
+.callout.info .cl{background:var(--blue);color:white}.callout.info .cb{background:#eef4fd}
+.callout.warn .cl{background:var(--amber);color:white}.callout.warn .cb{background:var(--amber-lt)}
+.callout.key  .cl{background:var(--navy);color:var(--accent)}.callout.key  .cb{background:#f0effa}
+.callout.good .cl{background:var(--teal);color:white}.callout.good  .cb{background:var(--teal-lt)}
+.callout.risk .cl{background:var(--red);color:white}.callout.risk  .cb{background:var(--red-lt)}
+
+/* Tables */
+.tw{overflow-x:auto;margin:1.2rem 0;border-radius:6px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+thead tr{background:var(--navy)}
+thead th{padding:.7rem 1rem;text-align:left;color:white;font-weight:600;font-size:.76rem;letter-spacing:.04em}
+tbody tr:nth-child(even){background:#f8f7f4}
+tbody tr:nth-child(odd){background:var(--bg-card)}
+tbody tr:hover{background:#eff3fb}
+td{padding:.6rem 1rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-mid);line-height:1.5;font-size:.84rem}
+td:first-child{font-weight:500;color:var(--text)}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:3px;font-size:.68rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;margin:1px}
+.tg-cowork {background:var(--cowork-bg);color:var(--cowork-tx);border:1px solid var(--cowork-bd)}
+.tg-code   {background:var(--code-bg);  color:var(--code-tx);  border:1px solid var(--code-bd)}
+.tg-hybrid {background:var(--hybrid-bg);color:var(--hybrid-tx);border:1px solid var(--hybrid-bd)}
+.tg-req    {background:var(--red-lt);   color:var(--red);      border:1px solid #f5a0a0}
+.tg-opt    {background:var(--green-lt); color:var(--green);    border:1px solid #a0d0a0}
+.tg-auto   {background:var(--teal-lt);  color:var(--teal);     border:1px solid var(--teal)}
+
+/* Solution tier legend */
+.tier-bar{display:flex;gap:.75rem;flex-wrap:wrap;padding:.9rem 4rem;background:white;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;align-items:center}
+.tier-label{font-size:.7rem;color:var(--text-mute);font-weight:500}
+
+/* Scenario cards */
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.25rem 0}
+.scenario-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.scenario-card:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(46,95,165,.1)}
+.scenario-card.active{border-color:var(--navy);box-shadow:0 2px 12px rgba(26,39,68,.15)}
+.sc-header{padding:1rem 1.1rem;display:flex;align-items:flex-start;gap:.75rem}
+.sc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.sc-title{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.2rem}
+.sc-sub{font-size:.78rem;color:var(--text-mute)}
+.sc-detail{padding:0 1.1rem 1rem;font-size:.83rem;color:var(--text-mid);line-height:1.55;display:none}
+.scenario-card.active .sc-detail{display:block}
+
+/* Process flow */
+.process-flow{display:flex;flex-direction:column;gap:0;margin:1.25rem 0}
+.pf-step{display:grid;grid-template-columns:36px 1fr;gap:0;position:relative}
+.pf-num{display:flex;flex-direction:column;align-items:center}
+.pf-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:white;flex-shrink:0;z-index:1}
+.pf-line{width:2px;background:var(--border);flex:1;margin:0 auto}
+.pf-body{padding:.1rem 0 1.5rem 1.1rem}
+.pf-title{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.3rem}
+.pf-desc{font-size:.84rem;color:var(--text-mid);line-height:1.55}
+.pf-tags{margin-top:.4rem;display:flex;gap:.25rem;flex-wrap:wrap}
+.pf-step:last-child .pf-line{display:none}
+
+/* Code block */
+.code-block{background:#1e2a3a;border-radius:6px;padding:1.1rem 1.3rem;margin:1rem 0;overflow-x:auto}
+.code-block pre{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:#c8d8f0;line-height:1.7;margin:0}
+.cbl{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.cbt{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-mute);letter-spacing:.06em}
+.cm{color:#6a8fa8}.ck{color:#79c0ff}.cv{color:#a5d6ff}.cs{color:#a8d8a0}.cn{color:#ffa657}.ch{color:#ff7b72}
+
+/* Checklist */
+.checklist{display:flex;flex-direction:column;gap:.4rem;margin:1rem 0}
+.ci{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem .85rem;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;font-size:.85rem}
+.ci-box{width:16px;height:16px;border:2px solid var(--border);border-radius:3px;flex-shrink:0;margin-top:1px}
+.ci.req .ci-box{border-color:var(--red);background:var(--red-lt)}
+.ci.opt .ci-box{border-color:var(--teal);background:var(--teal-lt)}
+.ci-text{color:var(--text-mid);line-height:1.45;flex:1}
+.ci-tag{flex-shrink:0}
+.ci.req .ci-text strong,.ci.req .ci-text{color:var(--text)}
+
+/* RACI table */
+.raci-role{font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:.2rem .45rem;border-radius:3px;text-align:center;display:inline-block;min-width:20px}
+.rr{background:#fde8e8;color:#8b1a1a}
+.ra{background:#e8f5e8;color:#1a5c1a}
+.rc{background:#e8eef8;color:#1a3870}
+.ri{background:#f5f5e8;color:#5c5c1a}
+
+/* Two col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.ic{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:1rem 1.1rem}
+.ic-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-mute);margin-bottom:.35rem}
+.ic-value{font-size:.88rem;color:var(--text);line-height:1.5}
+
+/* Cowork-specific constraints box */
+.constraint-box{background:var(--red-lt);border:1px solid #f5a0a0;border-radius:6px;padding:1.1rem 1.25rem;margin:1.25rem 0}
+.constraint-title{font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.constraint-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:.3rem}
+.constraint-list li{font-size:.83rem;color:#5c1a1a;line-height:1.5;padding-left:1rem;position:relative}
+.constraint-list li::before{content:'!';position:absolute;left:0;font-weight:700;color:var(--red);font-size:.7rem}
+
+/* Scrollbar */
+#nav::-webkit-scrollbar-track{background:transparent}
+@media print{#nav,#tier-bar{display:none}#main{margin-left:0}.sb.col{display:block!important}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div id="nav-header">
+    <div id="nav-logo">McDermott<br>Will &amp; Schulte</div>
+    <div id="nav-sub">Claude AI Platform</div>
+  </div>
+  <div><div class="nsl">Overview</div>
+    <a class="nl active" onclick="ns('hero')"><span class="num">—</span>Introduction</a>
+    <a class="nl" onclick="ns('s1')"><span class="num">1</span>The Handoff Problem</a>
+    <a class="nl" onclick="ns('s2')"><span class="num">2</span>Solution Tiers &amp; Classification</a>
+  </div>
+  <div><div class="nsl">Processes</div>
+    <a class="nl" onclick="ns('s3')"><span class="num">3</span>Build-Time Documentation</a>
+    <a class="nl" onclick="ns('s4')"><span class="num">4</span>Ownership &amp; Registry</a>
+    <a class="nl" onclick="ns('s5')"><span class="num">5</span>Handoff Playbook</a>
+    <a class="nl" onclick="ns('s6')"><span class="num">6</span>Extending a Solution</a>
+  </div>
+  <div><div class="nsl">Governance</div>
+    <a class="nl" onclick="ns('s7')"><span class="num">7</span>Ongoing Maintenance</a>
+    <a class="nl" onclick="ns('s8')"><span class="num">8</span>Deprecation &amp; Retirement</a>
+    <a class="nl" onclick="ns('s9')"><span class="num">9</span>Skills &amp; Automation</a>
+    <a class="nl" onclick="ns('s10')"><span class="num">10</span>RACI &amp; Roles</a>
+  </div>
+</nav>
+
+<div id="main">
+<div id="hero">
+  <div class="he">Solution Handoff &amp; Lifecycle Management — v1.0 · March 2026</div>
+  <div class="ht">Solution Handoff<br>&amp; Lifecycle Management</div>
+  <div class="hs">Processes for maintaining, extending, and transferring ownership of Claude-built solutions</div>
+  <div class="hm">
+    <div class="hmi"><span class="hml">Covers</span><span class="hmv">Cowork solutions · Code-built apps · Hybrid solutions</span></div>
+    <div class="hmi"><span class="hml">Companion documents</span><span class="hmv">Technical Architecture · Governance Standard · Delivery Automation</span></div>
+    <div class="hmi"><span class="hml">Primary audience</span><span class="hmv">AI Solutions Analysts · Practice group leads · Engineering team</span></div>
+  </div>
+</div>
+
+<div id="tier-bar" class="tier-bar">
+  <span class="tier-label">Solution tier:</span>
+  <span class="tag tg-cowork">COWORK</span><span style="font-size:.72rem;color:var(--text-mute);margin-left:.1rem">Knowledge worker-built, no-code</span>
+  <span style="margin:0 .5rem;color:var(--border)">|</span>
+  <span class="tag tg-hybrid">HYBRID</span><span style="font-size:.72rem;color:var(--text-mute);margin-left:.1rem">Cowork + engineered backend</span>
+  <span style="margin:0 .5rem;color:var(--border)">|</span>
+  <span class="tag tg-code">CODE-BUILT</span><span style="font-size:.72rem;color:var(--text-mute);margin-left:.1rem">Claude Code / developer-engineered</span>
+</div>
+
+<div class="content">
+
+<!-- ══ S1: The Handoff Problem ══ -->
+<div class="sec" id="s1">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">01</span><span class="st">The Handoff Problem</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Cowork makes it easy for a motivated attorney or legal ops specialist to build a genuinely useful solution — a matter intake workflow, a contract review pipeline, a weekly client update generator — without writing a line of code. This is a significant capability unlock. It also creates a new class of operational risk.</p>
+    <p>When that person leaves, rotates to another matter, or simply moves on to something else, the solution they built often leaves with them — or rather, it stays in production but nobody knows how it works, what it connects to, or how to change it. This is not a hypothetical: it is the standard failure mode of every previous wave of end-user computing, from Excel macros to SharePoint workflows.</p>
+
+    <div class="constraint-box">
+      <div class="constraint-title">Cowork-specific constraints that make this harder</div>
+      <ul class="constraint-list">
+        <li><strong>No audit logs or compliance export (currently).</strong> Cowork activity is excluded from the Anthropic Compliance API and Data Exports — meaning you cannot retrospectively reconstruct what a solution was doing or accessing.</li>
+        <li><strong>No cross-tool context sharing.</strong> Context built in a Cowork project (instructions, context files, connector config) is not visible to Claude Code or Claude.ai — making it hard for a developer to inspect or replicate a Cowork solution's logic.</li>
+        <li><strong>Desktop-local session persistence.</strong> Scheduled tasks require the desktop app to stay open; context lives on the original user's machine unless explicitly extracted.</li>
+        <li><strong>No native solution sharing.</strong> Cowork projects, chat history, and artifacts cannot currently be shared with other users — ownership transfer requires explicit documentation and re-creation.</li>
+      </ul>
+    </div>
+
+    <p>The processes in this document are designed to work <strong>around</strong> these constraints — not pretend they don't exist. The core principle is that any solution which goes into production must have its logic externalised into shared, version-controlled artefacts before it gets there, not after somebody has already left.</p>
+
+    <div class="callout key">
+      <div class="cl">PRINCIPLE</div>
+      <div class="cb"><strong>If a solution's logic lives only in one person's Cowork session, it is not in production — it is in a pilot.</strong> Promotion to production requires: a Solution Document in the registry, all context files in version control, connector and plugin configuration documented, and a named owner who is not the original builder.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S2: Solution Tiers ══ -->
+<div class="sec" id="s2">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">02</span><span class="st">Solution Tiers &amp; Classification</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Solutions fall into three tiers based on how they were built. The tier determines which handoff processes apply and how much engineering involvement is required to maintain the solution. Click a scenario to expand it.</p>
+
+    <div class="scenario-grid">
+      <div class="scenario-card" onclick="toggleScenario(this)">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--cowork-bg)">🧩</div>
+          <div><div class="sc-title"><span class="tag tg-cowork">COWORK</span> &nbsp;Pure knowledge worker-built</div><div class="sc-sub">Skills, context files, scheduled tasks, plugins — no code</div></div>
+        </div>
+        <div class="sc-detail">
+          <strong>Examples:</strong> Weekly matter status report generator, contract clause extraction workflow, client update email drafting, document filing automation using iManage connector, research synthesis pipeline.<br><br>
+          <strong>Typical builder:</strong> Attorney, legal ops specialist, practice group administrator (Power User or Analyst persona).<br><br>
+          <strong>Handoff complexity:</strong> Medium. The solution logic is in natural language (skills, context files, instructions) and is theoretically portable — but only if it was documented and externalised before the builder left. Without that, reconstruction from scratch is the only option.<br><br>
+          <strong>Maintenance:</strong> Can usually be maintained by another Power User or Analyst persona without developer involvement, provided the documentation is adequate.
+        </div>
+      </div>
+
+      <div class="scenario-card" onclick="toggleScenario(this)">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--code-bg)">⚙️</div>
+          <div><div class="sc-title"><span class="tag tg-code">CODE-BUILT</span> &nbsp;Developer-engineered</div><div class="sc-sub">Claude Code, MCP connectors, APIs, Azure-deployed</div></div>
+        </div>
+        <div class="sc-detail">
+          <strong>Examples:</strong> iManage MCP connector, internal document processing pipeline, custom Claude-integrated React application, automated matter intake API.<br><br>
+          <strong>Typical builder:</strong> Developer or AI Solutions Analyst (Developer persona).<br><br>
+          <strong>Handoff complexity:</strong> Lower, if built correctly. Code-built solutions are in Azure Repos, have CLAUDE.md, and follow the standard pipeline — the handoff process is well-established standard engineering practice, augmented with Claude Code-specific artefacts.<br><br>
+          <strong>Maintenance:</strong> Requires Developer persona. CLAUDE.md contains the institutional context needed for a new developer to pick up the project with Claude Code assistance.
+        </div>
+      </div>
+
+      <div class="scenario-card" onclick="toggleScenario(this)" style="grid-column:1/-1">
+        <div class="sc-header">
+          <div class="sc-icon" style="background:var(--hybrid-bg)">🔗</div>
+          <div><div class="sc-title"><span class="tag tg-hybrid">HYBRID</span> &nbsp;Cowork front-end + engineered backend</div><div class="sc-sub">Attorney-facing Cowork workflow backed by developer-built APIs or connectors</div></div>
+        </div>
+        <div class="sc-detail">
+          <strong>Examples:</strong> A Cowork plugin that calls a custom .NET API to retrieve matter summaries; a Cowork scheduled task that uses the iManage MCP connector plus a Python-built RAG index; a practice group Cowork workflow that depends on a developer-maintained Azure function.<br><br>
+          <strong>Typical builders:</strong> Two people — a Power User or Analyst who built the Cowork side, and a Developer who built or maintains the backend.<br><br>
+          <strong>Handoff complexity:</strong> Highest. Two separate handoff processes must run in parallel: the Cowork documentation and re-creation process for the knowledge worker side, and the standard engineering handoff for the backend. If one owner leaves, the other half of the solution becomes opaque.<br><br>
+          <strong>Key risk:</strong> The Cowork owner often doesn't know the backend exists; the Developer often doesn't know what the Cowork workflow expects from the backend. Dependency mapping at build time is essential.
+        </div>
+      </div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Criterion</th><th><span class="tag tg-cowork">COWORK</span></th><th><span class="tag tg-hybrid">HYBRID</span></th><th><span class="tag tg-code">CODE-BUILT</span></th></tr></thead>
+        <tbody>
+          <tr><td>Version control</td><td>Context files in Azure Repos (required)</td><td>Both layers in Azure Repos</td><td>Full codebase in Azure Repos</td></tr>
+          <tr><td>Handoff artefact</td><td>Solution Document + context file export</td><td>Solution Document + code handoff package</td><td>CLAUDE.md + standard engineering handoff</td></tr>
+          <tr><td>Successor persona needed</td><td>Power User or Analyst</td><td>Analyst + Developer (two people)</td><td>Developer</td></tr>
+          <tr><td>Time to reconstruct without docs</td><td>Days to weeks</td><td>Weeks to months</td><td>Hours to days (code is self-documenting)</td></tr>
+          <tr><td>Audit log availability</td><td>Limited (Cowork excluded currently)</td><td>Partial (backend logged; Cowork side not)</td><td>Full (pipeline + Sentinel)</td></tr>
+          <tr><td>Scheduled task portability</td><td>Manual re-creation on new machine required</td><td>Manual for Cowork side; automated for code side</td><td>Fully automated via pipeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: Build-Time Documentation ══ -->
+<div class="sec" id="s3">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">03</span><span class="st">Build-Time Documentation Requirements</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Documentation must happen <em>before</em> a solution goes to production, not when a handoff is needed. The following artefacts are required for all solution tiers. The <code>solution-document</code> skill (Section 9) automates most of this.</p>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">3.1</span><span class="subt">The Solution Document — required for all tiers</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Every production solution must have a Solution Document stored in the MWS Solution Registry (Azure DevOps wiki). This is the single source of truth for what the solution does, who owns it, and how to maintain it. The <code>/solution-document</code> skill generates this automatically from a conversation with the builder.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Section</th><th>Contents</th><th>Required for</th></tr></thead>
+            <tbody>
+              <tr><td>Identity</td><td>Solution name, ID, tier, owner, deputy owner, practice group, created date, last reviewed</td><td>All tiers</td></tr>
+              <tr><td>Purpose</td><td>What the solution does, who uses it, what problem it solves, what it replaces (if anything)</td><td>All tiers</td></tr>
+              <tr><td>Dependencies</td><td>MCP connectors, plugins, skills, iManage workspaces accessed, external APIs, Azure resources, scheduled tasks and their cadence</td><td>All tiers</td></tr>
+              <tr><td>Inputs &amp; outputs</td><td>What data goes in, what comes out, where outputs are saved, who receives them</td><td>All tiers</td></tr>
+              <tr><td>Context files</td><td>List and location of all context files; link to Azure Repos folder where they are version-controlled</td><td>Cowork, Hybrid</td></tr>
+              <tr><td>Skill/plugin inventory</td><td>All skills and plugins used, with versions; which are from MWS marketplace vs custom</td><td>Cowork, Hybrid</td></tr>
+              <tr><td>Connector configuration</td><td>Which MCP connectors are used, what OAuth scopes, what iManage ACL requirements, what data the connector accesses</td><td>All tiers</td></tr>
+              <tr><td>Known limitations</td><td>Edge cases, failure modes, things the solution does not handle, manual intervention required in which scenarios</td><td>All tiers</td></tr>
+              <tr><td>Testing approach</td><td>How to verify the solution is working correctly; test cases; expected outputs for sample inputs</td><td>All tiers</td></tr>
+              <tr><td>Change history</td><td>Version log: what changed, who changed it, when, why</td><td>All tiers</td></tr>
+              <tr><td>Architecture notes</td><td>CLAUDE.md location, Azure Repos URL, pipeline URL, Container App URLs if applicable</td><td>Hybrid, Code-built</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">3.2</span><span class="subt">Context file externalisation — Cowork and Hybrid solutions</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>The single biggest risk in Cowork solutions is context that exists only on the builder's local machine or only in their Cowork session. Every piece of context that governs solution behaviour must be externalised to a shared location before the solution goes to production.</p>
+        <div class="checklist">
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Global instructions:</strong> The solution's system-level instructions exported to a <code>.md</code> file in Azure Repos</div><span class="ci-tag"><span class="tag tg-req">REQUIRED</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Context files:</strong> All context files the solution uses committed to <code>/context-files/[solution-id]/</code> in Azure Repos</div><span class="ci-tag"><span class="tag tg-req">REQUIRED</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Skill files:</strong> Custom skill <code>.md</code> files committed to the MWS plugins repo and referenced by name in the Solution Document</div><span class="ci-tag"><span class="tag tg-req">REQUIRED</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Scheduled task definitions:</strong> Natural language description of each scheduled task — what it does, its cadence, what it needs to run — committed alongside context files</div><span class="ci-tag"><span class="tag tg-req">REQUIRED</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Connector configuration:</strong> Which connectors, which OAuth scopes, which iManage workspace IDs, documented in the Solution Document</div><span class="ci-tag"><span class="tag tg-req">REQUIRED</span></span></div>
+          <div class="ci opt"><div class="ci-box"></div><div class="ci-text"><strong>Sample task transcripts:</strong> 2–3 example sessions showing the solution working correctly — useful as test cases for successors</div><span class="ci-tag"><span class="tag tg-opt">RECOMMENDED</span></span></div>
+          <div class="ci opt"><div class="ci-box"></div><div class="ci-text"><strong>Failure examples:</strong> Known failure cases and how to recover — reduces time to resolve issues for a new owner</div><span class="ci-tag"><span class="tag tg-opt">RECOMMENDED</span></span></div>
+        </div>
+
+        <div class="callout warn">
+          <div class="cl">GATE</div>
+          <div class="cb">The AI Solutions Analyst review (Section 4.2) will not approve a Cowork solution for production registration unless all REQUIRED artefacts above are in Azure Repos and linked from the Solution Document. A solution that fails this review is classified as a pilot, not a production solution.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">3.3</span><span class="subt">CLAUDE.md for code-built and hybrid solutions</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Code-built and Hybrid solutions have a CLAUDE.md at the repository root. For handoff purposes, CLAUDE.md must include — beyond the standard development constraints — a dedicated handoff section that gives a new developer (and Claude Code) the context needed to pick up the project with minimal ramp-up time.</p>
+        <div class="cbl"><span class="cbt">CLAUDE.md — required handoff section</span></div>
+        <div class="code-block"><pre><span class="cm">## Handoff context</span>
+
+<span class="cs">### What this solution does</span>
+[One paragraph plain English description of the business purpose]
+
+<span class="cs">### Who uses it and how</span>
+- Primary users: [practice group / personas]
+- How they access it: [Cowork plugin / React app / scheduled task / API]
+- Usage frequency: [daily / weekly / ad hoc]
+- Business criticality: [P1 — client-facing / P2 — internal / P3 — convenience]
+
+<span class="cs">### Key design decisions</span>
+- [Why we chose X over Y — include the reasoning, not just the choice]
+- [Any non-obvious constraints that shaped the architecture]
+
+<span class="cs">### Things that are fragile or need attention</span>
+- [Known gotchas, edge cases, areas that need careful handling]
+
+<span class="cs">### Dependencies that could break this</span>
+- iManage workspace: [workspace ID and what data it accesses]
+- External services: [any APIs or services beyond standard MWS connectors]
+- Key Vault secrets: [which secrets, what they're for, rotation schedule]
+- Scheduled tasks: [what runs, when, what it needs to function]
+
+<span class="cs">### How to test it is working correctly</span>
+1. [Step-by-step smoke test a new owner can run]
+2. [Expected outputs for standard inputs]
+
+<span class="cs">### Last review</span>
+Date: [date] | Reviewer: [name] | Next review: [date]</pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S4: Ownership & Registry ══ -->
+<div class="sec" id="s4">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">04</span><span class="st">Ownership &amp; Solution Registry</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">4.1</span><span class="subt">The MWS Solution Registry</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>The Solution Registry is an Azure DevOps wiki maintained by the AI Solutions Analyst team. Every production Claude-built solution has a registry entry. The registry serves four purposes: it makes solutions discoverable (preventing duplicate builds), it tracks ownership so changes in personnel trigger handoff reviews, it provides the inventory for quarterly governance audits, and it is the integration point for the automated monitoring described in Section 7.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Field</th><th>Values / format</th><th>Used for</th></tr></thead>
+            <tbody>
+              <tr><td>Solution ID</td><td><code>MWS-SLTN-[YYYY]-[NNN]</code></td><td>Unique reference; links to Azure Repos, DevOps work items</td></tr>
+              <tr><td>Tier</td><td>COWORK / HYBRID / CODE-BUILT</td><td>Determines maintenance process and required persona for changes</td></tr>
+              <tr><td>Status</td><td>PILOT / PRODUCTION / UNDER-REVIEW / DEPRECATED / RETIRED</td><td>Governance audit; determines monitoring level</td></tr>
+              <tr><td>Owner</td><td>Named individual + Azure AD email</td><td>Primary contact; receives alerts; approves changes</td></tr>
+              <tr><td>Deputy owner</td><td>Named individual + Azure AD email</td><td>Backup contact; takes over if owner unavailable</td></tr>
+              <tr><td>Practice group</td><td>Practice group name</td><td>Plugin marketplace routing; budget attribution</td></tr>
+              <tr><td>Business criticality</td><td>P1 (client-facing) / P2 (internal ops) / P3 (convenience)</td><td>Incident response priority; maintenance SLA</td></tr>
+              <tr><td>MCP connectors used</td><td>List from approved connector set</td><td>Impact analysis for connector changes; security audit scope</td></tr>
+              <tr><td>Matter data access</td><td>YES (specify workspaces) / NO</td><td>Triggers Risk Management review; privilege tagging requirements</td></tr>
+              <tr><td>Last health check</td><td>Date + PASS/FAIL</td><td>Automated by connector-health hook; manual fallback monthly</td></tr>
+              <tr><td>Next review due</td><td>Date (auto-set to 90 days post-deploy; then quarterly)</td><td>Calendar invite sent to owner; overdue triggers escalation</td></tr>
+              <tr><td>Artefacts location</td><td>Azure Repos URL</td><td>Handoff starting point; audit trail</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">4.2</span><span class="subt">Production registration process</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>A solution cannot be registered as PRODUCTION in the registry without passing through this process. The process differs by tier but all tiers require AI Solutions Analyst review before production registration.</p>
+
+        <div class="process-flow">
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#4a148c">1</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Builder submits solution for review</div>
+              <div class="pf-desc">Builder runs <code>/solution-document</code> skill, completes all required fields, commits context files to Azure Repos, and opens an Azure DevOps work item tagged <code>solution-registration</code> against the AI Strategy &amp; Technology team.</div>
+              <div class="pf-tags"><span class="tag tg-cowork">COWORK</span><span class="tag tg-hybrid">HYBRID</span><span class="tag tg-code">CODE-BUILT</span></div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#1565c0">2</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">AI Solutions Analyst reviews documentation completeness</div>
+              <div class="pf-desc">Checks all required artefacts are present (Section 3.2 checklist), verifies connector configuration is documented, confirms a named deputy owner exists who is not the builder. Returns to builder if incomplete.</div>
+              <div class="pf-tags"><span class="tag tg-cowork">COWORK</span><span class="tag tg-hybrid">HYBRID</span><span class="tag tg-code">CODE-BUILT</span></div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#00695c">3</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Security review (if matter data accessed)</div>
+              <div class="pf-desc">IT Security reviews connector configuration for any solution with <code>Matter data access: YES</code>. Confirms user token passthrough pattern, ethical wall implications, and audit logging. Runs legal-compliance-check subagent on Cowork context files.</div>
+              <div class="pf-tags"><span class="tag tg-cowork">COWORK</span><span class="tag tg-hybrid">HYBRID</span><span class="tag tg-code">CODE-BUILT</span><span style="font-size:.72rem;color:var(--text-mute);margin-left:.25rem">only if matter data</span></div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#e65100">4</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Solution registered as PRODUCTION</div>
+              <div class="pf-desc">Analyst creates registry entry, assigns Solution ID, sets first review date (90 days), sends calendar invite to owner and deputy owner, activates health monitoring. Solution is officially in production.</div>
+              <div class="pf-tags"><span class="tag tg-cowork">COWORK</span><span class="tag tg-hybrid">HYBRID</span><span class="tag tg-code">CODE-BUILT</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">4.3</span><span class="subt">Ownership rules</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <ul>
+          <li><strong>Every production solution must have both an owner and a deputy owner</strong> — two named, different people. A solution with a single owner is a bus-factor risk.</li>
+          <li><strong>Owner and deputy owner must not both be the original builder.</strong> The deputy owner should ideally be the person most likely to inherit the solution.</li>
+          <li><strong>HR integration trigger:</strong> When a named owner or deputy owner is marked for departure (offboarding process), an automated Azure DevOps work item is created for the AI Strategy &amp; Technology team with a 30-day deadline to complete a handoff. This is the formal trigger for the handoff playbook (Section 5).</li>
+          <li><strong>Quarterly review reminders:</strong> Calendar invites go to both owner and deputy owner. If a review is more than 14 days overdue, the AI Solutions Analyst team escalates to the practice group lead.</li>
+          <li><strong>Practice group lead accountability:</strong> Practice group leads are accountable for ensuring all solutions in their group have valid, current owners. This is a standing item in the quarterly governance review.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: Handoff Playbook ══ -->
+<div class="sec" id="s5">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">05</span><span class="st">Handoff Playbook</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>The handoff playbook is triggered by a formal ownership change event: a departure, a role change, a practice group restructure, or an elective transfer. Three variants are described below based on whether the handoff is <em>planned</em> (the owner is leaving on known timeline) or <em>unplanned</em> (the owner has already left).</p>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">5.1</span><span class="subt">Planned handoff — 30-day process</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>This is the ideal scenario — the owner knows they are leaving and can participate in the handoff. The 30-day timeline is structured so the outgoing owner's direct involvement is front-loaded, leaving the successor to run independently for the last week as a validation of the handoff quality.</p>
+
+        <div class="process-flow">
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#1a2744">D-30</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Handoff initiated — successor identified</div>
+              <div class="pf-desc">AI Strategy &amp; Technology creates handoff work item. Outgoing owner and successor identified. If solution documentation is incomplete, outgoing owner prioritises completing it before any other handoff activity. Solution Document reviewed and updated.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#4a148c">D-25</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Context file and artefact audit</div>
+              <div class="pf-desc">Run <code>/handoff-audit [solution-id]</code> skill (Section 9.2). Generates a gap report: which artefacts are missing, which context files exist only on the outgoing owner's machine, which scheduled tasks would break if the desktop app is not running. All gaps resolved before D-20.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#1565c0">D-20</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Knowledge transfer session (1–2 hours)</div>
+              <div class="pf-desc">Outgoing owner walks successor through the solution using the Solution Document as the agenda. Session recorded (Teams). Successor runs the solution's smoke test independently with the outgoing owner present. Q&amp;A captured in the Solution Document change history.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#00695c">D-14</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Successor configures solution on their environment</div>
+              <div class="pf-desc">Successor installs required plugins, connects to MCP connectors (iManage OAuth re-authorised under successor's identity — not the outgoing owner's token), sets up scheduled tasks. Verifies each runs correctly. For Cowork solutions, context files loaded from Azure Repos, not copied from outgoing owner's machine.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#e65100">D-7</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Shadow period — successor runs, outgoing owner available</div>
+              <div class="pf-desc">Successor operates the solution independently for one week. Outgoing owner available for questions but does not intervene unless there is a failure. Any issues discovered are documented and resolved. If the solution breaks during this period, the gap must be fixed before the final handoff sign-off.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#4e342e">D-0</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Ownership transfer confirmed</div>
+              <div class="pf-desc">Successor and AI Solutions Analyst sign off on the handoff work item. Registry updated: new owner, deputy owner. Outgoing owner's Cowork connection to iManage for this solution revoked. Old OAuth tokens rotated. Solution Document version incremented.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">5.2</span><span class="subt">Unplanned handoff — the owner has already left</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>This is the harder scenario and unfortunately the more common one. The process depends on what artefacts exist in the registry and Azure Repos. The deputy owner becomes the default interim owner immediately — which is why the requirement for a named deputy is non-negotiable.</p>
+
+        <div class="callout risk">
+          <div class="cl">RISK</div>
+          <div class="cb">If the departed owner's context files were never externalised to Azure Repos, and the Solution Document is incomplete or missing, reconstruction from scratch may be the only option. This is why the production registration gate exists — to prevent exactly this situation by requiring documentation before production status is granted.</div>
+        </div>
+
+        <div class="tw">
+          <table>
+            <thead><tr><th>Documentation state</th><th>Recovery approach</th><th>Estimated effort</th></tr></thead>
+            <tbody>
+              <tr><td>Full Solution Document + all artefacts in Azure Repos</td><td>Deputy owner follows Section 5.1 from D-14 onward. No reconstruction needed — context files load directly from repos.</td><td>1–3 days</td></tr>
+              <tr><td>Partial documentation, some context files in repos</td><td>Run <code>/reconstruct-solution</code> skill (Section 9.3). Claude analyses available artefacts and fills gaps. Deputy owner validates reconstructed logic against observed behaviour.</td><td>3–7 days</td></tr>
+              <tr><td>Solution Document only, no context files</td><td>AI Solutions Analyst rebuilds Cowork workflow from Solution Document description. Validates against any output samples or recorded sessions.</td><td>1–2 weeks</td></tr>
+              <tr><td>No documentation exists</td><td>Escalate to practice group lead. Assess whether solution is still needed — if yes, treat as new build with business users interviewed to reconstruct requirements. No attempt to "guess" what the departed owner intended.</td><td>2–4 weeks</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Regardless of documentation state, the following must happen immediately when an owner departs without a planned handoff:</p>
+        <ul>
+          <li>Deputy owner notified and confirmed as interim owner (same day)</li>
+          <li>Departed owner's OAuth tokens and Cowork connector access revoked (within 24 hours)</li>
+          <li>Solution health check run to confirm nothing is broken by the token revocation</li>
+          <li>If the solution uses scheduled tasks that were running on the departed owner's desktop, those tasks are suspended until the deputy owner configures them on their own environment</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">5.3</span><span class="subt">The iManage re-authorisation requirement</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>This is the most important operational detail in any handoff involving iManage. Because the MWS iManage connector uses user token passthrough — meaning Claude's access to iManage is via the authenticated user's own OAuth token, not a service account — the following must always happen on ownership transfer:</p>
+        <ol>
+          <li><strong>The old owner's OAuth token for the iManage connector is revoked</strong> as part of their offboarding. The solution stops working at this point — this is intentional and correct.</li>
+          <li><strong>The new owner (successor or deputy) re-authorises the connector under their own identity.</strong> They go through the OAuth flow as themselves, establishing their own token in the governance gateway's Key Vault.</li>
+          <li><strong>The new owner's iManage access is verified</strong> — they must have the appropriate matter workspace access under their own iManage credentials. If the departed owner had access the new owner does not have, this surfaces a matter access gap that must be resolved with iManage administration before the solution resumes.</li>
+          <li><strong>The first run after re-authorisation is monitored</strong> — the AI Solutions Analyst reviews the audit log to confirm the new owner's token is being used and the solution is accessing only the expected matters.</li>
+        </ol>
+        <div class="callout info">
+          <div class="cl">WHY</div>
+          <div class="cb">This re-authorisation requirement is not bureaucratic overhead — it is the mechanism that ensures Claude never has residual access to matters via a departed employee's credentials. It also surfaces matter access misalignments early: if the new owner doesn't have the access the solution needs, better to discover that in a controlled handoff than when the solution silently fails at 6am on a Monday morning.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S6: Extending a Solution ══ -->
+<div class="sec" id="s6">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">06</span><span class="st">Extending a Solution After Handoff</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Extending a solution that someone else built — especially a Cowork solution you inherited — requires a different approach than building from scratch. The successor must understand what exists before changing it, and must ensure changes don't break the parts they didn't touch.</p>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">6.1</span><span class="subt">The "understand before you change" protocol</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Before making any change to a solution you have inherited, run the <code>/solution-brief [solution-id]</code> skill against the existing Solution Document and context files. Claude will generate a structured analysis of what the solution does, why it was built the way it was (from the design rationale in the Solution Document), and what the likely consequences of different types of changes would be. This takes 10–15 minutes and prevents a large category of regression errors.</p>
+        <div class="process-flow">
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#1a2744">1</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Read the Solution Document and run the solution</div>
+              <div class="pf-desc">Before touching anything, run the solution end-to-end using the smoke test defined in the Solution Document. Establish a baseline — know what "working correctly" looks like before making changes.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#4a148c">2</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Scope the change and assess impact</div>
+              <div class="pf-desc">Use the Solution Document dependency map to identify everything the proposed change might touch. For Hybrid solutions, notify the backend developer before making changes to the Cowork side — Cowork changes can break backend assumptions about input format, connector scope, or timing.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#1565c0">3</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Make the change in a staging context first</div>
+              <div class="pf-desc">For Cowork solutions: duplicate the context files to a <code>staging/</code> subfolder in Azure Repos; test the change there. For code-built solutions: use the standard dev → staging pipeline. Never modify a production context file directly without testing.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#00695c">4</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Update documentation before merging</div>
+              <div class="pf-desc">Update the Solution Document: what changed, why, known limitations of the new version. Update context files in Azure Repos. Increment the version in the change history. The AI Solutions Analyst reviews the Solution Document update for completeness.</div>
+            </div>
+          </div>
+          <div class="pf-step">
+            <div class="pf-num"><div class="pf-circle" style="background:#e65100">5</div><div class="pf-line"></div></div>
+            <div class="pf-body">
+              <div class="pf-title">Deploy to production and run smoke test</div>
+              <div class="pf-desc">Promote context file changes to production (merge in Azure Repos), re-run smoke test, update registry entry (last modified, version). For P1 solutions, notify the practice group lead of any material changes.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">6.2</span><span class="subt">Change classification — what needs what level of review</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <div class="tw">
+          <table>
+            <thead><tr><th>Change type</th><th>Examples</th><th>Review required</th><th>Approval</th></tr></thead>
+            <tbody>
+              <tr><td>Wording / tone in skill</td><td>Rephrasing an instruction, fixing a typo in context file</td><td>Owner self-review</td><td>Owner only</td></tr>
+              <tr><td>Workflow logic change</td><td>Adding a new step, changing output format, modifying scheduling cadence</td><td>AI Solutions Analyst review</td><td>Owner + Analyst</td></tr>
+              <tr><td>New connector or expanded scope</td><td>Adding iManage access, connecting to a new M365 data source, accessing new matter workspaces</td><td>IT Security review + Analyst</td><td>Owner + Analyst + IT Security</td></tr>
+              <tr><td>New matter data access</td><td>Expanding to cover additional practice groups, accessing new client workspaces</td><td>IT Security + Risk Management</td><td>Owner + IT Security + Risk Management sign-off</td></tr>
+              <tr><td>Tier upgrade (Cowork → Hybrid)</td><td>Adding a developer-built backend component to a previously pure Cowork solution</td><td>Full registration review (same as new solution)</td><td>Treats as new solution registration</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">6.3</span><span class="subt">Using Claude to extend a Cowork solution</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Claude can be used directly to help extend a Cowork solution — ask it to analyse the existing context files, identify gaps or improvement opportunities, draft new skill instructions, or rewrite sections for clarity. The key discipline is treating this as a collaborative design process, not a one-shot prompt.</p>
+        <div class="callout good">
+          <div class="cl">APPROACH</div>
+          <div class="cb">Load the existing context files into a Claude session, paste in the current Solution Document, and describe what you want to change. Ask Claude to: (1) explain what the existing solution does in plain English, (2) identify risks or side effects of your proposed change, (3) draft the updated context file. Review the draft against the original before committing. This is far more reliable than editing context files directly without AI assistance.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S7: Ongoing Maintenance ══ -->
+<div class="sec" id="s7">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">07</span><span class="st">Ongoing Maintenance</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">7.1</span><span class="subt">Quarterly review — what to check</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Every production solution receives a quarterly review regardless of whether anything has changed. The review is lightweight for stable solutions (30 minutes) and more involved if the solution has been extended, if connectors have been updated, or if personnel have changed.</p>
+        <div class="checklist">
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Run the smoke test.</strong> Does the solution produce the expected output for the standard test input? Document the result.</div><span class="ci-tag"><span class="tag tg-req">ALL TIERS</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Verify ownership.</strong> Are the named owner and deputy still at the firm, still in the same practice group, still the right people to own this?</div><span class="ci-tag"><span class="tag tg-req">ALL TIERS</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Check connector health.</strong> Are all MCP connectors responding? Are OAuth tokens current? Has any connector been updated in ways that affect this solution?</div><span class="ci-tag"><span class="tag tg-req">ALL TIERS</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Review iManage access scope.</strong> Does the solution still need access to the same workspaces? Have any matters been closed or added? Is the ethical wall configuration still correct?</div><span class="ci-tag"><span class="tag tg-req">MATTER DATA</span></span></div>
+          <div class="ci req"><div class="ci-box"></div><div class="ci-text"><strong>Check plugin and skill versions.</strong> Are any plugins or skills used by this solution on a deprecated version? Update or document the reason for not updating.</div><span class="ci-tag"><span class="tag tg-req">COWORK / HYBRID</span></span></div>
+          <div class="ci opt"><div class="ci-box"></div><div class="ci-text"><strong>User feedback review.</strong> Has the practice group lead reported any issues or change requests? Are there known limitations that have become more painful?</div><span class="ci-tag"><span class="tag tg-opt">RECOMMENDED</span></span></div>
+          <div class="ci opt"><div class="ci-box"></div><div class="ci-text"><strong>Model behaviour check.</strong> Has a recent Claude model update changed how the solution behaves? Compare output quality against the baseline from initial deployment.</div><span class="ci-tag"><span class="tag tg-opt">RECOMMENDED</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">7.2</span><span class="subt">Model update management</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Claude model updates are one of the least visible but most impactful maintenance concerns for Cowork solutions. Unlike a code dependency where a breaking change produces a hard error, a model update can silently change output quality, format, or behaviour in ways that only a user notices — and only after the fact.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Risk level</th><th>Solution characteristics</th><th>Response</th></tr></thead>
+            <tbody>
+              <tr><td><strong>High</strong></td><td>Output format is parsed by another system (e.g. Cowork output consumed by a .NET API in a Hybrid solution)</td><td>Pin model version in connector config; test new models against output format in staging before updating</td></tr>
+              <tr><td><strong>Medium</strong></td><td>Output goes to attorney review but specific phrasing or structure is expected</td><td>Include output format specification in context file; run quarterly baseline comparison</td></tr>
+              <tr><td><strong>Low</strong></td><td>Output is used informally (research synthesis, meeting prep)</td><td>Rely on quarterly review to catch quality regressions; no special management needed</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The <code>/solution-health-check [solution-id]</code> skill runs the solution's smoke test and compares output against the stored baseline, flagging significant divergences. This is the primary mechanism for detecting model-update-induced regressions between quarterly reviews.</p>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">7.3</span><span class="subt">Maintenance SLAs by priority</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <div class="tw">
+          <table>
+            <thead><tr><th>Priority</th><th>Definition</th><th>Break/fix response</th><th>Review cadence</th><th>Change lead time</th></tr></thead>
+            <tbody>
+              <tr><td><strong>P1</strong> Client-facing</td><td>Attorneys or clients directly depend on output; affects work product</td><td>Same-day triage; 24hr resolution or workaround</td><td>Quarterly + on model update</td><td>48hr for critical fixes; 1 week for enhancements</td></tr>
+              <tr><td><strong>P2</strong> Internal ops</td><td>Firm staff depend on it for internal operations; delays cause inefficiency</td><td>48hr triage; 1-week resolution</td><td>Quarterly</td><td>1 week for fixes; 2 weeks for enhancements</td></tr>
+              <tr><td><strong>P3</strong> Convenience</td><td>Helpful but not relied upon; no downstream dependencies</td><td>Next quarterly review</td><td>Quarterly</td><td>No SLA — owner discretion</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8: Deprecation ══ -->
+<div class="sec" id="s8">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">08</span><span class="st">Deprecation &amp; Retirement</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Solutions that are no longer needed must be formally retired — not just abandoned. Abandoned solutions are a security and compliance liability: they retain connector access, consume quota, and may be quietly re-used by someone who doesn't know the context.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Step</th><th>Action</th><th>Who</th></tr></thead>
+        <tbody>
+          <tr><td>1. Retirement decision</td><td>Owner or practice group lead determines solution is no longer needed. Documents rationale in Solution Document.</td><td>Owner / Practice group lead</td></tr>
+          <tr><td>2. Dependency check</td><td>AI Solutions Analyst verifies no other solution depends on this one (check Solution Registry for cross-references).</td><td>AI Solutions Analyst</td></tr>
+          <tr><td>3. Revoke connector access</td><td>Remove solution's connector authorisations from governance gateway. Revoke any OAuth tokens specific to this solution. Verify via audit log.</td><td>IT Security</td></tr>
+          <tr><td>4. Deactivate scheduled tasks</td><td>All scheduled tasks for this solution deactivated on the owner's desktop and any shared infrastructure.</td><td>Owner</td></tr>
+          <tr><td>5. Archive artefacts</td><td>Solution Document, context files, and code moved to <code>/archive/[solution-id]/</code> in Azure Repos. Not deleted — retained for 3 years per records management policy.</td><td>AI Solutions Analyst</td></tr>
+          <tr><td>6. Registry update</td><td>Status set to RETIRED. Retirement date and rationale recorded. Entry remains visible in registry but flagged as archived.</td><td>AI Solutions Analyst</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <div class="cl">IMPORTANT</div>
+      <div class="cb">A solution that fails two consecutive quarterly reviews without resolution (smoke test fails and not fixed within 30 days) is automatically flagged for retirement review. The AI Solutions Analyst initiates a retirement discussion with the practice group lead. If no one advocates for maintaining the solution within 14 days of that discussion, it is retired.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S9: Skills & Automation ══ -->
+<div class="sec" id="s9">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">09</span><span class="st">Skills &amp; Automation Supporting This Process</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Five skills and one subagent automate the most time-intensive parts of the lifecycle management process. These are part of the <code>mws-cowork-admin</code> plugin (Tier 3, Section 10 of the Delivery Automation guide) and available to AI Solutions Analysts and Power Users.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Extension</th><th>Invocation</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><strong>solution-document</strong> <span class="tag tg-auto">SKILL</span></td><td><code>/solution-document</code></td><td>Interviews the builder through a structured conversation and generates a complete Solution Document ready for registry submission. Takes 20–30 minutes. Outputs a markdown file and pre-filled Azure DevOps work item template.</td></tr>
+          <tr><td><strong>handoff-audit</strong> <span class="tag tg-auto">SKILL</span></td><td><code>/handoff-audit [solution-id]</code></td><td>Reads the Solution Document from Azure Repos, checks which artefacts are present and which are missing, generates a gap report with specific remediation steps. Run at D-25 of the planned handoff process.</td></tr>
+          <tr><td><strong>reconstruct-solution</strong> <span class="tag tg-auto">SKILL</span></td><td><code>/reconstruct-solution [solution-id]</code></td><td>Used in unplanned handoff when documentation is partial. Analyses available artefacts, interviews the deputy owner, and reconstructs the solution logic to the extent possible. Flags what could not be reconstructed and must be verified by running the solution.</td></tr>
+          <tr><td><strong>solution-health-check</strong> <span class="tag tg-auto">SKILL</span></td><td><code>/solution-health-check [solution-id]</code></td><td>Runs the solution's smoke test, compares output against the stored baseline, checks connector status, verifies scheduled tasks are active, and updates the registry's last-health-check field. Generates a PASS/FAIL report.</td></tr>
+          <tr><td><strong>registry-report</strong> <span class="tag tg-auto">SKILL</span></td><td><code>/registry-report</code></td><td>Generates the monthly Solution Registry status report: solutions by status, overdue reviews, owner changes since last report, connector access by solution. Used by AI Strategy &amp; Technology for governance reporting.</td></tr>
+          <tr><td><strong>ownership-review</strong> <span class="tag tg-auto">SUBAGENT</span></td><td>Auto: on HR offboarding trigger via DevOps webhook</td><td>Triggered automatically when an owner or deputy owner is flagged for departure. Identifies all solutions they own, assesses documentation completeness for each, drafts handoff work items with recommended successors based on practice group and persona tier. Alerts AI Solutions Analyst team.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">9.1</span><span class="subt">solution-document skill — example output structure</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <div class="cbl"><span class="cbt">.claude/skills/solution-document/SKILL.md (excerpt)</span></div>
+        <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">solution-document</span>
+<span class="ck">description:</span> <span class="cv">Generate a complete Solution Document for registry submission by
+  interviewing the solution builder.</span>
+<span class="ck">disable-model-invocation:</span> <span class="cn">true</span>
+<span class="cm">---</span>
+
+<span class="cs"># Solution Document Generator</span>
+
+Interview the user to collect all required fields for a Solution Document.
+Ask questions in conversational groups — do not present as a form.
+
+<span class="cs">## Phase 1: Identity and purpose (5 mins)</span>
+- What does this solution do? Describe it as if explaining to a partner.
+- Who uses it, and how often?
+- What did they do before this solution existed?
+- Which practice group owns this work?
+
+<span class="cs">## Phase 2: Technical inventory (10 mins)</span>
+- Which MCP connectors does it use? (iManage, M365, internal APIs?)
+- If iManage: which workspaces does it access? What data does it read/write?
+- What plugins and skills does it use?
+- Does it have any scheduled tasks? What do they do and when do they run?
+- Where do outputs go? Who receives them?
+
+<span class="cs">## Phase 3: Handoff readiness (5 mins)</span>
+- Where are your context files? Are they in Azure Repos?
+- Who would you want to take over if you left tomorrow?
+- What would they need to know that isn't written down anywhere?
+- What are the most common failure modes and how do you fix them?
+
+<span class="cs">## Output</span>
+Generate:
+1. Complete Solution Document in the standard template
+2. Artefact gap list (what still needs to be committed to Azure Repos)
+3. Azure DevOps work item body for solution registration submission
+4. Suggested deputy owner from the practice group roster if none named</pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S10: RACI & Roles ══ -->
+<div class="sec" id="s10">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">10</span><span class="st">RACI &amp; Role Summary</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+
+    <div class="two-col" style="margin-bottom:1rem">
+      <div class="ic"><div class="ic-label">RACI key</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.35rem">
+          <div style="display:flex;align-items:center;gap:.5rem"><span class="raci-role rr">R</span><span style="font-size:.82rem;color:var(--text-mid)">Responsible — does the work</span></div>
+          <div style="display:flex;align-items:center;gap:.5rem"><span class="raci-role ra">A</span><span style="font-size:.82rem;color:var(--text-mid)">Accountable — owns the outcome</span></div>
+          <div style="display:flex;align-items:center;gap:.5rem"><span class="raci-role rc">C</span><span style="font-size:.82rem;color:var(--text-mid)">Consulted — input required</span></div>
+          <div style="display:flex;align-items:center;gap:.5rem"><span class="raci-role ri">I</span><span style="font-size:.82rem;color:var(--text-mid)">Informed — kept in the loop</span></div>
+        </div>
+      </div>
+      <div class="ic"><div class="ic-label">Roles in this document</div>
+        <ul style="padding-left:1rem;margin-top:.35rem;font-size:.82rem;color:var(--text-mid)">
+          <li>Builder / Owner — created or owns the solution</li>
+          <li>Deputy owner — backup; inherits in unplanned handoff</li>
+          <li>AI Solutions Analyst — registry, reviews, process</li>
+          <li>Practice group lead — accountability, escalation</li>
+          <li>IT Security — connector, token, security reviews</li>
+          <li>Engineering lead — code-built and hybrid backend</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Activity</th><th>Builder / Owner</th><th>Deputy</th><th>AI Analyst</th><th>PG Lead</th><th>IT Security</th><th>Eng Lead</th></tr></thead>
+        <tbody>
+          <tr><td>Create Solution Document</td><td><span class="raci-role rr">R</span></td><td><span class="raci-role rc">C</span></td><td><span class="raci-role ra">A</span></td><td><span class="raci-role ri">I</span></td><td>—</td><td>—</td></tr>
+          <tr><td>Externalise context files to repos</td><td><span class="raci-role rr">R</span></td><td>—</td><td><span class="raci-role ra">A</span></td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>Production registration review</td><td><span class="raci-role rc">C</span></td><td>—</td><td><span class="raci-role ra rr">RA</span></td><td><span class="raci-role ri">I</span></td><td><span class="raci-role rc">C</span></td><td>—</td></tr>
+          <tr><td>Security review (matter data)</td><td><span class="raci-role rc">C</span></td><td>—</td><td><span class="raci-role rc">C</span></td><td><span class="raci-role ri">I</span></td><td><span class="raci-role ra rr">RA</span></td><td>—</td></tr>
+          <tr><td>Planned handoff (outgoing owner)</td><td><span class="raci-role rr">R</span></td><td><span class="raci-role rr">R</span></td><td><span class="raci-role ra">A</span></td><td><span class="raci-role ri">I</span></td><td><span class="raci-role ri">I</span></td><td>—</td></tr>
+          <tr><td>Unplanned handoff recovery</td><td>—</td><td><span class="raci-role rr">R</span></td><td><span class="raci-role ra">A</span></td><td><span class="raci-role rc">C</span></td><td><span class="raci-role rc">C</span></td><td>—</td></tr>
+          <tr><td>iManage re-authorisation</td><td>—</td><td><span class="raci-role rr">R</span></td><td><span class="raci-role rc">C</span></td><td>—</td><td><span class="raci-role ra">A</span></td><td>—</td></tr>
+          <tr><td>Extending a solution (Cowork)</td><td><span class="raci-role rr">R</span></td><td>—</td><td><span class="raci-role ra">A</span></td><td><span class="raci-role ri">I</span></td><td><span class="raci-role rc">C</span></td><td>—</td></tr>
+          <tr><td>Extending a solution (Code-built)</td><td>—</td><td>—</td><td><span class="raci-role rc">C</span></td><td><span class="raci-role ri">I</span></td><td><span class="raci-role rc">C</span></td><td><span class="raci-role ra rr">RA</span></td></tr>
+          <tr><td>Quarterly review</td><td><span class="raci-role rr">R</span></td><td><span class="raci-role rc">C</span></td><td><span class="raci-role ra">A</span></td><td><span class="raci-role ri">I</span></td><td>—</td><td>—</td></tr>
+          <tr><td>Solution deprecation</td><td><span class="raci-role rc">C</span></td><td><span class="raci-role rc">C</span></td><td><span class="raci-role rr">R</span></td><td><span class="raci-role ra">A</span></td><td><span class="raci-role rr">R</span></td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+function ts(h){h.classList.toggle('col');h.nextElementSibling.classList.toggle('col');updateNav()}
+function tss(h){h.classList.toggle('col');h.nextElementSibling.classList.toggle('col')}
+function toggleScenario(card){
+  const wasActive=card.classList.contains('active');
+  document.querySelectorAll('.scenario-card').forEach(c=>c.classList.remove('active'));
+  if(!wasActive)card.classList.add('active');
+}
+function ns(id){
+  const el=document.getElementById(id);if(!el)return;
+  if(el.classList.contains('sec')){
+    const h=el.querySelector('.sh'),b=el.querySelector('.sb');
+    if(h&&b&&b.classList.contains('col')){h.classList.remove('col');b.classList.remove('col')}
+  }
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function updateNav(){
+  const secs=document.querySelectorAll('.sec');
+  const links=document.querySelectorAll('.nl');
+  const sy=window.scrollY+120;
+  let aid='hero';
+  secs.forEach(s=>{if(s.offsetTop<=sy)aid=s.id});
+  links.forEach(l=>{
+    l.classList.remove('active');
+    const t=l.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    if(t===aid||(aid==='hero'&&t==='hero'))l.classList.add('active');
+  });
+}
+window.addEventListener('scroll',updateNav);
+document.querySelectorAll('.sb').forEach(b=>b.classList.remove('col'));
+document.querySelectorAll('.sh').forEach(h=>h.classList.remove('col'));
+document.querySelectorAll('.subb').forEach(b=>b.classList.remove('col'));
+document.querySelectorAll('.subh').forEach(h=>h.classList.remove('col'));
+</script>
+</body>
+</html>

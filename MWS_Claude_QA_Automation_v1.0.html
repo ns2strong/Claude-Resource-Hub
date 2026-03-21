@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWS Claude — QA &amp; Test Automation Framework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#1a2744;--navy-mid:#243560;--blue:#2e5fa5;
+  --accent:#c8a04a;--accent-lt:#e8c87a;
+  --bg:#f4f2ee;--bg-card:#fdfcfa;
+  --text:#1c1c1e;--text-mid:#3d3d40;--text-mute:#6b6b70;
+  --border:#dbd8d0;
+  --teal:#0f6e56;--teal-lt:#e1f5ee;
+  --coral:#993c1d;--coral-lt:#faece7;
+  --purple:#534ab7;--purple-lt:#eeedfe;
+  --amber:#854f0b;--amber-lt:#faeeda;
+  --green:#375623;--green-lt:#e2efda;
+  --red:#c0392b;--red-lt:#fff0f0;
+  /* Layer colours */
+  --l1:#4a148c;--l1-lt:#f3e8ff;
+  --l2:#1565c0;--l2-lt:#e8f1fd;
+  --l3:#00695c;--l3-lt:#e8f5f1;
+  --l4:#e65100;--l4-lt:#fff3e8;
+  --l5:#4e342e;--l5-lt:#f5ede9;
+  /* Test type colours */
+  --det-bg:#e8f5e8;--det-bd:#2e7d32;--det-tx:#1b5e20;
+  --llm-bg:#e8eef8;--llm-bd:#1565c0;--llm-tx:#0d3c6e;
+  --hum-bg:#fff3e0;--hum-bd:#e65100;--hum-tx:#7f2700;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7}
+
+/* Nav */
+#nav{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--navy);overflow-y:auto;z-index:100;display:flex;flex-direction:column;padding:0 0 2rem}
+#nav-header{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.5rem}
+#nav-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--accent);letter-spacing:.02em;line-height:1.3;margin-bottom:.25rem}
+#nav-sub{font-size:.7rem;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.nsl{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:.6rem 1.25rem .2rem;font-weight:600}
+.nl{display:flex;align-items:center;gap:.5rem;padding:.42rem 1.25rem;color:rgba(255,255,255,.65);text-decoration:none;font-size:.8rem;font-weight:400;transition:all .15s;border-left:2px solid transparent;cursor:pointer}
+.nl:hover{color:white;background:rgba(255,255,255,.06)}
+.nl.active{color:var(--accent-lt);border-left-color:var(--accent);background:rgba(200,160,74,.1)}
+.nl .num{font-family:'IBM Plex Mono',monospace;font-size:.68rem;opacity:.5;min-width:1.8rem}
+#nav::-webkit-scrollbar{width:4px}
+#nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+#main{margin-left:260px;min-height:100vh}
+
+/* Hero */
+#hero{background:linear-gradient(135deg,#0d1f2d 0%,#1a2744 40%,#102030 100%);padding:5rem 4rem 4rem;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;top:-30%;right:-5%;width:680px;height:680px;border-radius:50%;background:radial-gradient(circle,rgba(200,160,74,.07) 0%,transparent 65%);pointer-events:none}
+#hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.he{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1rem}
+.ht{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:white;line-height:1.15;margin-bottom:.5rem}
+.hs{font-family:'Playfair Display',serif;font-size:1.3rem;color:rgba(255,255,255,.55);margin-bottom:2.5rem}
+.hm{display:flex;gap:2rem;flex-wrap:wrap}
+.hmi{display:flex;flex-direction:column;gap:.15rem}
+.hml{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600}
+.hmv{font-size:.82rem;color:rgba(255,255,255,.8)}
+
+/* Grader type legend */
+.legend-bar{display:flex;gap:.75rem;flex-wrap:wrap;padding:.9rem 4rem;background:white;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;align-items:center}
+.lbl{font-size:.7rem;color:var(--text-mute);font-weight:500}
+
+.content{max-width:900px;margin:0 auto;padding:3rem 4rem 6rem}
+
+/* Sections */
+.sec{margin-bottom:.5rem}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;background:var(--navy);color:white;cursor:pointer;user-select:none;border-radius:6px 6px 0 0;transition:background .15s;margin-top:2.5rem}
+.sh:hover{background:var(--navy-mid)}
+.sh.col{border-radius:6px}
+.sn{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--accent);margin-right:.75rem}
+.st{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;flex:1}
+.sc{width:20px;height:20px;transition:transform .25s;opacity:.6}
+.sh.col .sc{transform:rotate(-90deg)}
+.sb{background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;padding:2rem 2.5rem 2.5rem}
+.sb.col{display:none}
+
+/* Subsections */
+.sub{margin-top:1.75rem}
+.subh{display:flex;align-items:center;gap:.5rem;margin-bottom:.85rem;cursor:pointer;user-select:none}
+.subh:hover .subt{color:var(--blue)}
+.subnum{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--blue);font-weight:500}
+.subt{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--navy);transition:color .15s;flex:1}
+.subc{width:14px;height:14px;transition:transform .2s;opacity:.4}
+.subh.col .subc{transform:rotate(-90deg)}
+.subb.col{display:none}
+
+p{margin-bottom:.9rem;color:var(--text-mid);font-size:.92rem}
+p strong{color:var(--text);font-weight:600}
+ul,ol{padding-left:1.4rem;margin-bottom:.9rem}
+li{margin-bottom:.35rem;color:var(--text-mid);font-size:.92rem;line-height:1.6}
+li strong{color:var(--text)}
+code{background:#f0eee8;padding:.1rem .35rem;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:.84em}
+
+/* Callout */
+.callout{display:flex;margin:1.25rem 0;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.cl{padding:.85rem 1rem;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;min-width:76px;text-align:center;display:flex;align-items:center;justify-content:center}
+.cb{padding:.85rem 1.1rem;font-size:.88rem;color:var(--text-mid);line-height:1.65;flex:1}
+.callout.info .cl{background:var(--blue);color:white}.callout.info .cb{background:#eef4fd}
+.callout.warn .cl{background:var(--amber);color:white}.callout.warn .cb{background:var(--amber-lt)}
+.callout.key  .cl{background:var(--navy);color:var(--accent)}.callout.key .cb{background:#f0effa}
+.callout.good .cl{background:var(--teal);color:white}.callout.good .cb{background:var(--teal-lt)}
+.callout.risk .cl{background:var(--red);color:white}.callout.risk .cb{background:var(--red-lt)}
+
+/* Tables */
+.tw{overflow-x:auto;margin:1.2rem 0;border-radius:6px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+thead tr{background:var(--navy)}
+thead th{padding:.7rem 1rem;text-align:left;color:white;font-weight:600;font-size:.76rem;letter-spacing:.04em}
+tbody tr:nth-child(even){background:#f8f7f4}
+tbody tr:nth-child(odd){background:var(--bg-card)}
+tbody tr:hover{background:#eff3fb}
+td{padding:.6rem 1rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-mid);line-height:1.5;font-size:.84rem}
+td:first-child{font-weight:500;color:var(--text)}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:3px;font-size:.68rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;margin:1px}
+.tg-det{background:var(--det-bg);color:var(--det-tx);border:1px solid var(--det-bd)}
+.tg-llm{background:var(--llm-bg);color:var(--llm-tx);border:1px solid var(--llm-bd)}
+.tg-hum{background:var(--hum-bg);color:var(--hum-tx);border:1px solid var(--hum-bd)}
+.tg-hook{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber)}
+.tg-sub{background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal)}
+.tg-skill{background:var(--purple-lt);color:var(--purple);border:1px solid var(--purple)}
+.tg-pipe{background:#f1efea;color:#444;border:1px solid #888}
+.tg-pass{background:var(--green-lt);color:var(--green);border:1px solid var(--green)}
+.tg-fail{background:var(--red-lt);color:var(--red);border:1px solid var(--red)}
+
+/* Code block */
+.code-block{background:#1e2a3a;border-radius:6px;padding:1.1rem 1.3rem;margin:1rem 0;overflow-x:auto}
+.code-block pre{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:#c8d8f0;line-height:1.7;margin:0}
+.cbl{display:flex;align-items:center;margin-bottom:.4rem}
+.cbt{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-mute);letter-spacing:.06em}
+.cm{color:#6a8fa8}.ck{color:#79c0ff}.cv{color:#a5d6ff}.cs{color:#a8d8a0}.cn{color:#ffa657}.ch{color:#ff7b72}
+
+/* The pyramid */
+#pyramid-wrap{margin:1.5rem 0}
+.pyramid-layer{display:flex;align-items:center;gap:1rem;margin-bottom:.5rem;cursor:pointer;transition:opacity .15s}
+.pyramid-layer:hover{opacity:.9}
+.pyramid-layer.active .ply-bar{box-shadow:inset 0 0 0 2px var(--accent)}
+.ply-bar{border-radius:6px;height:52px;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:all .15s;min-width:0}
+.ply-label{font-size:.78rem;font-weight:700;color:white;text-align:center;line-height:1.3}
+.ply-sub{font-size:.65rem;color:rgba(255,255,255,.65);text-align:center}
+.ply-meta{flex-shrink:0;width:220px}
+.ply-meta-title{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.15rem}
+.ply-meta-sub{font-size:.75rem;color:var(--text-mute);line-height:1.4}
+#pyramid-detail{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1.5rem 1.75rem;margin-top:1rem;min-height:120px}
+.pd-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--navy);margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem}
+.pd-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.pd-item{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:.75rem .9rem}
+.pd-item-title{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.25rem}
+.pd-item-body{font-size:.78rem;color:var(--text-mid);line-height:1.45}
+.pd-item-tags{margin-top:.35rem;display:flex;gap:.2rem;flex-wrap:wrap}
+
+/* Process steps */
+.pf{display:flex;flex-direction:column;gap:0;margin:1.25rem 0}
+.pf-step{display:grid;grid-template-columns:40px 1fr;gap:0;position:relative}
+.pf-num-col{display:flex;flex-direction:column;align-items:center}
+.pf-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:white;flex-shrink:0;z-index:1}
+.pf-line{width:2px;background:var(--border);flex:1;margin:0 auto}
+.pf-body{padding:.1rem 0 1.5rem 1.1rem}
+.pf-title{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:.3rem}
+.pf-desc{font-size:.84rem;color:var(--text-mid);line-height:1.55}
+.pf-tags{margin-top:.4rem;display:flex;gap:.25rem;flex-wrap:wrap}
+.pf-step:last-child .pf-line{display:none}
+
+/* Two col */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.ic{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:1rem 1.1rem}
+.ic-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-mute);margin-bottom:.35rem}
+.ic-value{font-size:.88rem;color:var(--text);line-height:1.5}
+
+/* Eval rubric */
+.rubric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;margin-bottom:.5rem;overflow:hidden}
+.rubric-header{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;cursor:pointer;user-select:none;transition:background .15s}
+.rubric-header:hover{background:#f0eee8}
+.rubric-title{font-size:.88rem;font-weight:600;color:var(--text);flex:1}
+.rubric-body{padding:.75rem 1rem 1rem;border-top:1px solid var(--border);background:#fafaf8;font-size:.84rem;color:var(--text-mid);line-height:1.55}
+.rubric-body.col{display:none}
+
+/* Tool inventory table with colored type cells */
+.ttype-det{background:var(--det-bg);color:var(--det-tx);font-weight:600;font-size:.78rem;text-align:center}
+.ttype-llm{background:var(--llm-bg);color:var(--llm-tx);font-weight:600;font-size:.78rem;text-align:center}
+.ttype-hum{background:var(--hum-bg);color:var(--hum-tx);font-weight:600;font-size:.78rem;text-align:center}
+
+/* Pipeline band */
+.pipeline{display:flex;gap:0;margin:1.25rem 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.pipe-stage{flex:1;padding:.85rem .7rem;text-align:center;position:relative}
+.pipe-stage-name{font-size:.75rem;font-weight:700;color:white;margin-bottom:.2rem}
+.pipe-stage-sub{font-size:.62rem;color:rgba(255,255,255,.65);line-height:1.3}
+.pipe-arrow{position:absolute;right:-10px;top:50%;transform:translateY(-50%);z-index:2;color:white;font-size:.8rem;font-weight:700}
+
+@media print{#nav,#legend-bar{display:none}#main{margin-left:0}.sb.col{display:block!important}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div id="nav-header">
+    <div id="nav-logo">McDermott<br>Will &amp; Schulte</div>
+    <div id="nav-sub">Claude AI Platform</div>
+  </div>
+  <div><div class="nsl">Foundation</div>
+    <a class="nl active" onclick="ns('hero')"><span class="num">—</span>Introduction</a>
+    <a class="nl" onclick="ns('s1')"><span class="num">1</span>The AI Testing Challenge</a>
+    <a class="nl" onclick="ns('s2')"><span class="num">2</span>Testing Pyramid</a>
+    <a class="nl" onclick="ns('s3')"><span class="num">3</span>Grader Types</a>
+  </div>
+  <div><div class="nsl">Test layers</div>
+    <a class="nl" onclick="ns('s4')"><span class="num">4</span>Unit &amp; Component Tests</a>
+    <a class="nl" onclick="ns('s5')"><span class="num">5</span>AI Output Evals</a>
+    <a class="nl" onclick="ns('s6')"><span class="num">6</span>Integration &amp; MCP</a>
+    <a class="nl" onclick="ns('s7')"><span class="num">7</span>UI &amp; E2E Testing</a>
+    <a class="nl" onclick="ns('s8')"><span class="num">8</span>Performance &amp; Scale</a>
+    <a class="nl" onclick="ns('s9')"><span class="num">9</span>Security &amp; Compliance</a>
+  </div>
+  <div><div class="nsl">Automation</div>
+    <a class="nl" onclick="ns('s10')"><span class="num">10</span>Azure DevOps Pipeline</a>
+    <a class="nl" onclick="ns('s11')"><span class="num">11</span>Skills &amp; Subagents</a>
+    <a class="nl" onclick="ns('s12')"><span class="num">12</span>Tool Inventory</a>
+    <a class="nl" onclick="ns('s13')"><span class="num">13</span>Rollout Sequence</a>
+  </div>
+</nav>
+
+<div id="main">
+<div id="hero">
+  <div class="he">QA &amp; Test Automation Framework — v1.0 · March 2026</div>
+  <div class="ht">QA &amp; Test Automation<br>Framework</div>
+  <div class="hs">Unit, integration, AI output evaluation, UI, performance, and compliance testing for Claude-built solutions</div>
+  <div class="hm">
+    <div class="hmi"><span class="hml">Scope</span><span class="hmv">Cowork solutions · Code-built apps · MCP connectors · Hybrid</span></div>
+    <div class="hmi"><span class="hml">Primary builders</span><span class="hmv">AI Solutions Analysts · Developers</span></div>
+    <div class="hmi"><span class="hml">Companion documents</span><span class="hmv">Delivery Automation · Handoff &amp; Lifecycle · Technical Architecture</span></div>
+  </div>
+</div>
+
+<div id="legend-bar" class="legend-bar">
+  <span class="lbl">Grader types:</span>
+  <span class="tag tg-det">DETERMINISTIC</span><span style="font-size:.72rem;color:var(--text-mute);margin-left:.1rem">Code / rule-based · always returns same result</span>
+  <span style="margin:0 .5rem;color:var(--border)">|</span>
+  <span class="tag tg-llm">LLM-GRADED</span><span style="font-size:.72rem;color:var(--text-mute);margin-left:.1rem">Claude judges output against rubric</span>
+  <span style="margin:0 .5rem;color:var(--border)">|</span>
+  <span class="tag tg-hum">HUMAN REVIEW</span><span style="font-size:.72rem;color:var(--text-mute);margin-left:.1rem">Attorney or analyst validates</span>
+</div>
+
+<div class="content">
+
+<!-- ══ S1: The AI Testing Challenge ══ -->
+<div class="sec" id="s1">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">01</span><span class="st">The AI Testing Challenge</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Testing Claude-built solutions requires a fundamentally different mindset from testing traditional software. The challenge is non-determinism: the same input to a traditional function always produces the same output — that's what makes unit tests reliable. An LLM-powered solution, given the same input, may produce outputs that differ in wording, structure, or nuance across runs. Both may be correct. Neither will match <code>expected_output</code> exactly.</p>
+    <p>This means the traditional assertion-based testing model is insufficient on its own. It works well for the deterministic parts of a solution (API calls, data transformations, connector behaviour), but it cannot evaluate whether a Claude-generated legal summary is accurate, whether a contract review surfaces the right risks, or whether a matter update email maintains the appropriate professional tone.</p>
+
+    <div class="two-col">
+      <div class="ic">
+        <div class="ic-label">What traditional tests can evaluate</div>
+        <div class="ic-value">
+          <ul style="padding-left:1rem;margin:0">
+            <li>Does the API return the correct status code?</li>
+            <li>Is the connector passing the user's OAuth token?</li>
+            <li>Does the iManage search return results in under 2s?</li>
+            <li>Is the output JSON schema valid?</li>
+            <li>Does the hook correctly block a credential pattern?</li>
+          </ul>
+        </div>
+      </div>
+      <div class="ic">
+        <div class="ic-label">What requires LLM-graded evaluation</div>
+        <div class="ic-value">
+          <ul style="padding-left:1rem;margin:0">
+            <li>Is the contract summary accurate and complete?</li>
+            <li>Does the output follow MWS brand voice?</li>
+            <li>Did the solution identify the material risks?</li>
+            <li>Is the attorney disclaimer present and appropriate?</li>
+            <li>Did the agent take the correct sequence of steps?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="cl">CORE RULE</div>
+      <div class="cb"><strong>Use deterministic graders wherever possible. Use LLM graders where deterministic is insufficient. Use human review for high-stakes validation.</strong> Deterministic graders are fast, cheap, and reliable. LLM graders are flexible and scalable but add cost and latency. Human review is the highest quality bar but the most expensive — reserve it for initial calibration and P1 solution acceptance.</div>
+    </div>
+
+    <p>A second challenge specific to MWS is the legal domain. Solutions handling client matter data must be tested not just for technical correctness, but for legal appropriateness: privilege preservation, ethical wall enforcement, attorney disclaimer requirements, and RPC 1.6 compliance. These require a dedicated evaluation layer that standard engineering test frameworks do not provide.</p>
+  </div>
+</div>
+
+<!-- ══ S2: Testing Pyramid ══ -->
+<div class="sec" id="s2">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">02</span><span class="st">The MWS AI Testing Pyramid</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>The MWS testing pyramid has five layers. Click any layer to see the full test inventory for that level. The pyramid shape reflects the ideal distribution: many fast, automated tests at the bottom; fewer, more expensive tests at the top. The AI-specific layers (AI Output Evals and Legal Compliance) sit in the middle — they are automated but not instant.</p>
+
+    <div id="pyramid-wrap">
+      <div class="pyramid-layer" onclick="showLayer(4)" data-layer="4">
+        <div class="ply-bar" style="background:var(--l5);width:100%">
+          <div class="ply-label">5. Legal compliance &amp; human acceptance</div>
+          <div class="ply-sub">Attorney review · privilege check · RPC 1.6</div>
+        </div>
+        <div class="ply-meta"><div class="ply-meta-title">Least frequent · highest stakes</div><div class="ply-meta-sub">LLM-graded + human review. Run before any P1 production deployment and at major version changes.</div></div>
+      </div>
+      <div class="pyramid-layer" onclick="showLayer(3)" data-layer="3">
+        <div class="ply-bar" style="background:var(--l4);width:90%">
+          <div class="ply-label">4. Performance, scale &amp; security</div>
+          <div class="ply-sub">Load testing · latency · CVE · penetration</div>
+        </div>
+        <div class="ply-meta"><div class="ply-meta-title">Pre-production gating</div><div class="ply-meta-sub">Deterministic. Run in staging before any promotion to production. Weekly in production for P1 solutions.</div></div>
+      </div>
+      <div class="pyramid-layer" onclick="showLayer(2)" data-layer="2">
+        <div class="ply-bar" style="background:var(--l3);width:78%">
+          <div class="ply-label">3. UI &amp; end-to-end</div>
+          <div class="ply-sub">Playwright E2E · accessibility · cross-browser</div>
+        </div>
+        <div class="ply-meta"><div class="ply-meta-title">Staging environment</div><div class="ply-meta-sub">Deterministic + LLM-graded. Run in staging after every deployment. Full suite nightly.</div></div>
+      </div>
+      <div class="pyramid-layer" onclick="showLayer(1)" data-layer="1">
+        <div class="ply-bar" style="background:var(--l2);width:65%">
+          <div class="ply-label">2. AI output evaluation</div>
+          <div class="ply-sub">LLM-as-judge · rubric scoring · brand voice · legal accuracy</div>
+        </div>
+        <div class="ply-meta"><div class="ply-meta-title">CI pipeline + nightly</div><div class="ply-meta-sub">LLM-graded. Run in CI on every PR. Full eval suite nightly in staging. Regression baseline maintained.</div></div>
+      </div>
+      <div class="pyramid-layer" onclick="showLayer(0)" data-layer="0">
+        <div class="ply-bar" style="background:var(--l1);width:50%">
+          <div class="ply-label">1. Unit, component &amp; connector</div>
+          <div class="ply-sub">Jest · pytest · xUnit · MCP tool validation</div>
+        </div>
+        <div class="ply-meta"><div class="ply-meta-title">Most frequent · fastest · cheapest</div><div class="ply-meta-sub">Deterministic. Run on every file write (hook) and in every CI pipeline run. Target: &lt;60s full suite.</div></div>
+      </div>
+    </div>
+
+    <div id="pyramid-detail">
+      <div style="color:#888;font-size:.85rem">← Click a layer to see its test inventory</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: Grader Types ══ -->
+<div class="sec" id="s3">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">03</span><span class="st">Grader Types — When to Use Each</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <div class="tw">
+      <table>
+        <thead><tr><th>Grader type</th><th>Speed</th><th>Cost</th><th>Nuance</th><th>Use for</th><th>Avoid for</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tg-det">DETERMINISTIC</span></td>
+            <td>Fastest (&lt;1ms)</td><td>Zero</td><td>None</td>
+            <td>Schema validation, HTTP status, regex patterns, JSON structure, token/credential absence, performance thresholds, hook gate pass/fail</td>
+            <td>Any evaluation requiring understanding of meaning, tone, accuracy, or legal appropriateness</td>
+          </tr>
+          <tr>
+            <td><span class="tag tg-llm">LLM-GRADED</span></td>
+            <td>Seconds</td><td>Low–medium</td><td>High</td>
+            <td>Output quality, brand voice, legal accuracy, completeness, step sequencing, attorney disclaimer presence, rubric-based scoring</td>
+            <td>Pass/fail on observable facts (use deterministic instead); production monitoring at high volume (cost)</td>
+          </tr>
+          <tr>
+            <td><span class="tag tg-hum">HUMAN REVIEW</span></td>
+            <td>Hours–days</td><td>Highest</td><td>Highest</td>
+            <td>Initial rubric calibration, P1 solution acceptance, privilege-sensitive output review, legal compliance sign-off, contested LLM judge decisions</td>
+            <td>Routine regression testing; anything that can be adequately covered by deterministic or LLM graders</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">3.1</span><span class="subt">LLM-as-judge — how to write good rubrics</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>LLM graders are only as good as their rubrics. Vague rubrics produce inconsistent verdicts. Specific, measurable rubrics produce reliable, scalable evaluation. The following principles apply to every LLM grader written for MWS solutions:</p>
+        <ul>
+          <li><strong>Emit a verdict first, reasoning second.</strong> Ask the judge to output only <code>PASS</code> or <code>FAIL</code> (or a 1–5 score) before any explanation. This forces a concrete judgment and makes the output parseable by downstream automation.</li>
+          <li><strong>One rubric per criterion.</strong> Don't ask the judge to evaluate accuracy, tone, and disclaimer presence in a single prompt. Use three separate judge invocations — one per criterion — and aggregate results. This makes failures traceable to specific criteria.</li>
+          <li><strong>Make criteria binary where possible.</strong> "Does the output mention the attorney review disclaimer? YES or NO" is more reliable than "Rate the appropriateness of the disclaimer on a scale of 1–5."</li>
+          <li><strong>Calibrate with human-reviewed examples.</strong> Before deploying a rubric, collect 20–30 human-reviewed outputs (10 clearly good, 10 clearly bad, 10 borderline). Verify the judge agrees with human verdicts on the clear cases before trusting it on borderline ones.</li>
+          <li><strong>Version your rubrics.</strong> Rubrics stored in Azure Repos alongside the test suite. When a rubric changes, run both old and new against the calibration set before deploying to CI.</li>
+        </ul>
+
+        <div class="cbl"><span class="cbt">Example: MWS LLM judge pattern (TypeScript)</span></div>
+        <div class="code-block"><pre><span class="cm">// judges/brand-voice.ts</span>
+<span class="ck">export async function</span> <span class="cv">judgesBrandVoice</span>(output: string): Promise&lt;<span class="cv">JudgeResult</span>&gt; {
+  <span class="ck">const</span> response = <span class="ck">await</span> anthropic.messages.create({
+    model: <span class="cs">'claude-sonnet-4-6'</span>,
+    max_tokens: <span class="cn">256</span>,
+    system: <span class="cs">`You are a strict brand compliance judge for McDermott Will & Schulte.
+      Evaluate the provided text against MWS brand standards.
+      Respond ONLY with: PASS or FAIL, then a newline, then one sentence explaining why.`</span>,
+    messages: [{
+      role: <span class="cs">'user'</span>,
+      content: <span class="cs">`Evaluate this output for MWS brand voice compliance:
+
+CRITERIA (ALL must pass):
+1. No prohibited phrases: revolutionary, game-changing, cutting-edge, unleash, supercharge
+2. No legacy firm name "McDermott Will & Emery" (should be "McDermott Will & Schulte")
+3. No anthropomorphic Claude descriptions (thinking, feeling, believing)
+4. Attorney review disclaimer present if output contains legal analysis
+
+OUTPUT TO EVALUATE:
+${output}`</span>
+    }]
+  });
+  <span class="ck">const</span> text = response.content[<span class="cn">0</span>].text;
+  <span class="ck">const</span> verdict = text.startsWith(<span class="cs">'PASS'</span>) ? <span class="cs">'PASS'</span> : <span class="cs">'FAIL'</span>;
+  <span class="ck">const</span> reason = text.split(<span class="cs">'\n'</span>).slice(<span class="cn">1</span>).join(<span class="cs">' '</span>).trim();
+  <span class="ck">return</span> { verdict, reason, criterion: <span class="cs">'brand-voice'</span> };
+}</pre></div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">3.2</span><span class="subt">Behaviour-based testing for agent solutions</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>For solutions where Claude takes a sequence of actions (multi-step Cowork workflows, agent pipelines), the most important question is not "is the final output correct?" but "did the agent take the correct sequence of steps?" This is behaviour-based quality testing — evaluating the trace, not just the terminus.</p>
+        <p>The pattern: run the solution, capture the tool call trace, apply deterministic judges to observable facts (which tools were called, in what order, with what parameters), and LLM judges to the quality of each step's output. This gives you both structural correctness (the agent did the right things) and quality assurance (it did them well).</p>
+        <div class="cbl"><span class="cbt">Trace-based judge pattern</span></div>
+        <div class="code-block"><pre><span class="cm">// For a solution that should: search_matter → get_document → summarise → file_document</span>
+<span class="ck">const</span> traceJudges = [
+  <span class="cm">// Deterministic: did the right tools fire?</span>
+  { type: <span class="cs">'deterministic'</span>, check: <span class="cv">trace</span> =>
+    [<span class="cs">'search_matter'</span>,<span class="cs">'get_document'</span>,<span class="cs">'file_document'</span>]
+      .every(t => trace.toolCalls.includes(t))
+  },
+  <span class="cm">// Deterministic: did user token passthrough occur? (audit log check)</span>
+  { type: <span class="cs">'deterministic'</span>, check: <span class="cv">trace</span> =>
+    trace.auditLog.every(e => e.tokenType === <span class="cs">'user'</span>)
+  },
+  <span class="cm">// LLM: was the summary accurate and complete?</span>
+  { type: <span class="cs">'llm'</span>, criterion: <span class="cs">'summary-quality'</span>,
+    prompt: <span class="cv">summaryQualityRubric</span>
+  },
+  <span class="cm">// LLM: was the attorney disclaimer present in any output containing analysis?</span>
+  { type: <span class="cs">'llm'</span>, criterion: <span class="cs">'disclaimer-present'</span>,
+    prompt: <span class="cv">disclaimerRubric</span>
+  },
+];</pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S4: Unit & Component Tests ══ -->
+<div class="sec" id="s4">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">04</span><span class="st">Layer 1 — Unit, Component &amp; Connector Tests</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Layer 1 is entirely deterministic and should run in under 60 seconds for any individual repository. These tests validate the plumbing, not the intelligence. They run via the <code>test-runner</code> hook (PostToolUse:Write) during development and in every CI pipeline run.</p>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">4.1</span><span class="subt">MCP connector unit tests — the five required properties</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Every MCP connector tool must have tests for the following five properties. These are the same properties the <code>mcp-connector-test</code> subagent validates in staging — the unit tests provide faster feedback during development.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Property</th><th>Test approach</th><th>Grader</th><th>Framework</th></tr></thead>
+            <tbody>
+              <tr><td>Input validation</td><td>Call the tool with invalid inputs (missing fields, wrong types, oversized payloads). Assert typed MCP error responses returned.</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Jest / pytest</td></tr>
+              <tr><td>User token passthrough</td><td>Mock the backend API. Call tool with a test token. Assert the mock receives exactly that token — not a hardcoded or service account credential.</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Jest mock / httpx mock</td></tr>
+              <tr><td>Audit log emission</td><td>Call the tool. Assert the audit log emitter was called with the expected fields (user ID, tool name, connector name, sanitised params).</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Jest spy / pytest mock</td></tr>
+              <tr><td>Error handling</td><td>Mock the backend to return 401, 403, 404, 500. Assert the connector returns appropriate MCP error types — not raw HTTP errors.</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Jest / pytest</td></tr>
+              <tr><td>Output schema</td><td>Call the tool with valid inputs. Assert the response matches the declared MCP output schema (Zod / Pydantic validation).</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Zod / Pydantic</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cbl"><span class="cbt">iManage connector — search_matter unit test (TypeScript/Jest)</span></div>
+        <div class="code-block"><pre><span class="cm">// tests/tools/search-matter.test.ts</span>
+describe(<span class="cs">'search_matter'</span>, () => {
+  it(<span class="cs">'passes user token to iManage API'</span>, async () => {
+    <span class="ck">const</span> mockFetch = jest.spyOn(global, <span class="cs">'fetch'</span>).mockResolvedValue({
+      ok: <span class="cn">true</span>, json: async () => ({ items: [] })
+    } <span class="ck">as any</span>);
+
+    <span class="ck">await</span> searchMatter({ query: <span class="cs">'test'</span> }, { userToken: <span class="cs">'user-token-123'</span> });
+
+    <span class="ck">const</span> [url, opts] = mockFetch.mock.calls[<span class="cn">0</span>];
+    expect(opts.headers.Authorization).toBe(<span class="cs">'Bearer user-token-123'</span>);
+    <span class="cm">// Never a service account token</span>
+    expect(opts.headers.Authorization).not.toContain(<span class="cs">'sa-'</span>);
+  });
+
+  it(<span class="cs">'emits audit log with required fields'</span>, async () => {
+    <span class="ck">const</span> auditSpy = jest.spyOn(auditLogger, <span class="cs">'log'</span>);
+    <span class="ck">await</span> searchMatter({ query: <span class="cs">'test'</span> }, { userToken: <span class="cs">'tok'</span>, userId: <span class="cs">'u-001'</span> });
+    expect(auditSpy).toHaveBeenCalledWith(expect.objectContaining({
+      userId: <span class="cs">'u-001'</span>,
+      tool: <span class="cs">'search_matter'</span>,
+      connector: <span class="cs">'imanage'</span>,
+      timestamp: expect.any(String),
+    }));
+    <span class="cm">// Params sanitised — no matter content in audit log</span>
+    expect(auditSpy.mock.calls[<span class="cn">0</span>][<span class="cn">0</span>].params).not.toHaveProperty(<span class="cs">'documentContent'</span>);
+  });
+
+  it(<span class="cs">'returns typed MCP error on 403'</span>, async () => {
+    jest.spyOn(global, <span class="cs">'fetch'</span>).mockResolvedValue({ ok: <span class="cn">false</span>, status: <span class="cn">403</span> } <span class="ck">as any</span>);
+    <span class="ck">const</span> result = <span class="ck">await</span> searchMatter({ query: <span class="cs">'test'</span> }, { userToken: <span class="cs">'tok'</span> });
+    expect(result.isError).toBe(<span class="cn">true</span>);
+    expect(result.content[<span class="cn">0</span>].text).toContain(<span class="cs">'authorisation'</span>);
+  });
+});</pre></div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">4.2</span><span class="subt">.NET API layer — xUnit with FluentAssertions</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>The .NET business logic API layer uses xUnit with FluentAssertions and Moq. The Claude Code <code>test-gen</code> subagent generates these automatically for new controller actions. Key focus areas: <code>[MatterAuthorize]</code> attribute enforcement, correct HTTP status code mapping, iManage workspace ID validation, and CancellationToken propagation. All database interactions use an in-memory test database seeded per-test — no SQL Server dependency in the unit test suite.</p>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">4.3</span><span class="subt">Python pipeline — pytest with fixtures</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Python AI pipeline components use pytest with fixtures for test data management and <code>pytest-mock</code> for mocking the Anthropic SDK and Azure clients. Key areas: Pydantic model validation at every pipeline stage boundary, chunk metadata completeness (matter ID, doc ID, sensitivity level), retry logic under simulated rate limits, and Azure Credential mock to verify no hardcoded auth.</p>
+        <div class="cbl"><span class="cbt">Python pipeline stage boundary test</span></div>
+        <div class="code-block"><pre><span class="cm"># tests/test_chunk_processor.py</span>
+<span class="ck">def</span> <span class="cv">test_chunk_metadata_completeness</span>(sample_document_fixture):
+    <span class="cs">"""Every chunk must have matter_id, doc_id, chunk_index, sensitivity_level."""</span>
+    chunks = chunk_document(sample_document_fixture)
+    <span class="ck">for</span> chunk <span class="ck">in</span> chunks:
+        assert chunk.matter_id, <span class="cs">"matter_id required — never chunk without matter context"</span>
+        assert chunk.doc_id, <span class="cs">"doc_id required for audit trail"</span>
+        assert chunk.chunk_index <span class="ck">is not None</span>
+        assert chunk.sensitivity_level <span class="ck">in</span> [<span class="cs">'standard'</span>,<span class="cs">'privileged'</span>,<span class="cs">'restricted'</span>]
+
+<span class="ck">def</span> <span class="cv">test_no_matter_content_in_logs</span>(sample_document_fixture, caplog):
+    <span class="cs">"""Matter content must never appear in application logs."""</span>
+    chunk_document(sample_document_fixture)
+    <span class="ck">for</span> record <span class="ck">in</span> caplog.records:
+        assert sample_document_fixture.content[:50] <span class="ck">not in</span> record.message</pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: AI Output Evals ══ -->
+<div class="sec" id="s5">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">05</span><span class="st">Layer 2 — AI Output Evaluation</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>AI output evals are the most distinctive part of the MWS testing framework. They evaluate the quality, accuracy, and compliance of Claude-generated content — the things traditional tests cannot assess. Every solution that produces output consumed by attorneys or sent externally must have an eval suite.</p>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">5.1</span><span class="subt">Standard eval rubrics — required for all AI-output solutions</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>The following rubrics are applied to all solutions that produce text output. They are packaged in the <code>mws-standard-evals</code> module and applied automatically by the <code>eval-runner</code> subagent. Solutions may add domain-specific rubrics on top of these standards.</p>
+
+        <div class="rubric-card">
+          <div class="rubric-header" onclick="toggleRubric(this)">
+            <span class="tag tg-llm">LLM-GRADED</span>
+            <span class="rubric-title">Brand voice compliance</span>
+            <svg style="width:14px;height:14px;transition:transform .2s;opacity:.4;flex-shrink:0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="rubric-body col">
+            <strong>Criteria (all binary PASS/FAIL):</strong>
+            <ul>
+              <li>No prohibited phrases (revolutionary, game-changing, cutting-edge, unleash, supercharge, leverage as verb, paradigm shift, seamlessly)</li>
+              <li>Firm name correct: "McDermott Will &amp; Schulte" (not legacy "McDermott Will &amp; Emery")</li>
+              <li>Claude not described anthropomorphically (thinking, feeling, believing, understanding)</li>
+              <li>Active voice used in &gt;70% of sentences</li>
+              <li>Second person ("you", "your") used in attorney-facing copy</li>
+            </ul>
+            <strong>Pass threshold:</strong> All 5 criteria must pass. Any FAIL = overall FAIL.<br>
+            <strong>Calibration set:</strong> 30 examples in <code>/evals/calibration/brand-voice/</code>
+          </div>
+        </div>
+
+        <div class="rubric-card">
+          <div class="rubric-header" onclick="toggleRubric(this)">
+            <span class="tag tg-llm">LLM-GRADED</span>
+            <span class="rubric-title">Attorney review disclaimer</span>
+            <svg style="width:14px;height:14px;transition:transform .2s;opacity:.4;flex-shrink:0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="rubric-body col">
+            <strong>Applies to:</strong> Any output containing legal analysis, contract review, matter summarisation, or risk assessment.<br><br>
+            <strong>Criteria:</strong>
+            <ul>
+              <li>A disclaimer stating attorney review is required before external use is present in the output</li>
+              <li>The disclaimer is prominent — not buried in a footnote</li>
+              <li>The output does not characterise itself as "advice", "opinion", or "counsel"</li>
+            </ul>
+            <strong>Pass threshold:</strong> All 3 criteria must pass. This is a non-negotiable requirement — FAIL blocks deployment.<br>
+            <strong>Note:</strong> This rubric has a deterministic pre-check: grep for "attorney" case-insensitively. If not found, skip LLM judge and immediately FAIL.
+          </div>
+        </div>
+
+        <div class="rubric-card">
+          <div class="rubric-header" onclick="toggleRubric(this)">
+            <span class="tag tg-llm">LLM-GRADED</span>
+            <span class="rubric-title">Output completeness and accuracy</span>
+            <svg style="width:14px;height:14px;transition:transform .2s;opacity:.4;flex-shrink:0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="rubric-body col">
+            <strong>Applies to:</strong> Solutions that summarise, extract, or analyse specific content (contract review, matter update, research synthesis).<br><br>
+            <strong>Criteria (scored 1–5):</strong>
+            <ul>
+              <li>Completeness: Does the output address all aspects of the task defined in the solution's context file? (5 = fully, 1 = major gaps)</li>
+              <li>Accuracy: Are factual claims consistent with the source material? (5 = fully consistent, 1 = material inaccuracies)</li>
+              <li>Hallucination: Does the output introduce information not present in the source? (5 = none detected, 1 = material fabrication)</li>
+            </ul>
+            <strong>Pass threshold:</strong> Average score ≥ 4.0. Any individual criterion below 3 = immediate FAIL.<br>
+            <strong>Calibration:</strong> Requires 20 human-reviewed examples per solution before the rubric is considered validated.
+          </div>
+        </div>
+
+        <div class="rubric-card">
+          <div class="rubric-header" onclick="toggleRubric(this)">
+            <span class="tag tg-det">DETERMINISTIC</span>
+            <span class="rubric-title">Output format and schema</span>
+            <svg style="width:14px;height:14px;transition:transform .2s;opacity:.4;flex-shrink:0" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="rubric-body col">
+            <strong>Applies to:</strong> Solutions that produce structured output (JSON, tables, specific section headings).<br><br>
+            <strong>Checks:</strong>
+            <ul>
+              <li>JSON outputs validate against the declared schema (Zod / JSON Schema)</li>
+              <li>Required sections present (for document-format outputs, all expected headings exist)</li>
+              <li>Output length within defined bounds (prevents runaway or truncated outputs)</li>
+              <li>No raw error text or stack traces in output (indicates the solution encountered an unhandled error)</li>
+            </ul>
+            <strong>Pass threshold:</strong> All checks must pass — binary, no partial credit.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">5.2</span><span class="subt">Regression baseline management</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>AI output quality can regress silently when a Claude model is updated or when context files are changed. The regression baseline captures a set of canonical input/output pairs at deployment time. Subsequent eval runs compare current outputs against the baseline using LLM judges to detect quality drift.</p>
+        <ul>
+          <li><strong>Baseline captured at:</strong> Initial production deployment, after any major model update, after any material context file change.</li>
+          <li><strong>Baseline contents:</strong> 20–50 input examples with human-reviewed "gold standard" outputs, stored in <code>/evals/baselines/[solution-id]/</code> in Azure Repos.</li>
+          <li><strong>Drift detection:</strong> The <code>eval-runner</code> subagent compares current outputs to the baseline weekly. A score drop of &gt;10% on the completeness/accuracy rubric triggers an alert to the solution owner.</li>
+          <li><strong>Model update protocol:</strong> When Anthropic releases a new model, run the full eval suite against both current and new model before updating. Promote only if new model scores ≥ current on all rubrics.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S6: Integration & MCP ══ -->
+<div class="sec" id="s6">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">06</span><span class="st">Layer 2b — Integration &amp; MCP Connector Tests</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Integration tests run against the staging environment using sandboxed iManage workspaces and a test M365 tenancy. They validate end-to-end connector behaviour — not mocked. The <code>mcp-connector-test</code> subagent automates the five required connector properties; the integration tests add staging-environment-specific scenarios.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Test category</th><th>What it validates</th><th>Grader</th><th>Environment</th></tr></thead>
+        <tbody>
+          <tr><td>Connector happy path</td><td>Each MCP tool returns expected data for valid inputs against staging iManage/M365</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Staging only</td></tr>
+          <tr><td>Token expiry handling</td><td>Connector correctly refreshes expired OAuth tokens without exposing errors to Claude</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Staging only</td></tr>
+          <tr><td>Ethical wall enforcement</td><td>Attempt to access a matter the test user does not have access to; assert 403 and correct MCP error</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Staging only</td></tr>
+          <tr><td>Gateway allowlist</td><td>Attempt to invoke a connector not on the allowlist from outside the gateway; assert blocked</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Staging only</td></tr>
+          <tr><td>Audit log to Sentinel</td><td>Invoke a tool; query Sentinel for the expected log entry within 30 seconds</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Staging only</td></tr>
+          <tr><td>Injection detection</td><td>Submit tool call result containing instruction-like content; assert gateway flags it</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Staging only</td></tr>
+          <tr><td>Full workflow trace</td><td>Run the complete solution workflow end-to-end; validate tool call sequence and output quality</td><td><span class="tag tg-det">DETERMINISTIC</span> + <span class="tag tg-llm">LLM-GRADED</span></td><td>Staging only</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <div class="cl">IMPORTANT</div>
+      <div class="cb">Integration tests that use iManage must use designated test workspaces — never production matter data. The test workspace IDs are stored in Azure Key Vault under the <code>staging-test-config</code> secret. No test ever references a production matter ID.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S7: UI & E2E ══ -->
+<div class="sec" id="s7">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">07</span><span class="st">Layer 3 — UI &amp; End-to-End Testing</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">7.1</span><span class="subt">Playwright — the E2E framework of choice</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Playwright is the E2E framework for all React/SPFx UI in the MWS stack. It runs headlessly in the Azure DevOps pipeline, and the <code>e2e-test</code> skill orchestrates it against staging. The <code>test-gen</code> subagent generates Playwright test scaffolding automatically for new UI components.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Test type</th><th>What Playwright validates</th><th>Grader</th></tr></thead>
+            <tbody>
+              <tr><td>Critical path flows</td><td>Attorney can navigate to a solution, submit a task, see results — core happy path, unbroken</td><td><span class="tag tg-det">DETERMINISTIC</span></td></tr>
+              <tr><td>Matter data display</td><td><code>MatterDataDisplay</code> component renders privilege indicators correctly; "attorney eyes only" labels present</td><td><span class="tag tg-det">DETERMINISTIC</span></td></tr>
+              <tr><td>Loading states</td><td>All loading states use the MWS skeleton screen pattern, not spinners; status text describes what is happening</td><td><span class="tag tg-det">DETERMINISTIC</span></td></tr>
+              <tr><td>Error state handling</td><td>All error states show both what went wrong and what the user should do next</td><td><span class="tag tg-llm">LLM-GRADED</span></td></tr>
+              <tr><td>Cross-browser</td><td>Chrome, Edge, Firefox — all supported browsers for the persona accessing this UI</td><td><span class="tag tg-det">DETERMINISTIC</span></td></tr>
+              <tr><td>SPFx-specific</td><td>Web part renders correctly in SharePoint context; tenant theming applied; no console errors</td><td><span class="tag tg-det">DETERMINISTIC</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cbl"><span class="cbt">Playwright — matter data display test (TypeScript)</span></div>
+        <div class="code-block"><pre><span class="cm">// tests/e2e/matter-display.spec.ts</span>
+test(<span class="cs">'MatterDataDisplay renders privilege indicator'</span>, async ({ page }) => {
+  <span class="ck">await</span> page.goto(<span class="cs">`${STAGING_URL}/matter-summary`</span>);
+  <span class="ck">await</span> page.fill(<span class="cs">'[data-testid="matter-search"]'</span>, TEST_MATTER_ID);
+  <span class="ck">await</span> page.click(<span class="cs">'[data-testid="submit"]'</span>);
+  <span class="ck">await</span> page.waitForSelector(<span class="cs">'[data-testid="matter-data-display"]'</span>);
+
+  <span class="cm">// Privilege indicator must be present</span>
+  <span class="ck">await</span> expect(page.locator(<span class="cs">'[data-testid="privilege-badge"]'</span>)).toBeVisible();
+
+  <span class="cm">// Attorney review disclaimer must be present in any analysis output</span>
+  <span class="ck">const</span> content = <span class="ck">await</span> page.locator(<span class="cs">'[data-testid="analysis-output"]'</span>).textContent();
+  expect(content?.toLowerCase()).toContain(<span class="cs">'attorney'</span>);
+
+  <span class="cm">// Colour alone must not distinguish matter sensitivity (accessibility)</span>
+  <span class="ck">const</span> sensitivityEl = page.locator(<span class="cs">'[data-testid="sensitivity-indicator"]'</span>);
+  <span class="ck">await</span> expect(sensitivityEl).toHaveAttribute(<span class="cs">'aria-label'</span>, /.+/);
+});</pre></div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">7.2</span><span class="subt">Accessibility testing — WCAG 2.1 AA</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Every UI surface is tested against WCAG 2.1 AA using a combination of automated (axe-core via Playwright) and Claude-assisted evaluation. Automated axe-core catches structural violations; the <code>accessibility-check</code> subagent evaluates contextual requirements that axe-core misses — error message quality, loading state descriptions, and colour-independent status indicators.</p>
+        <div class="cbl"><span class="cbt">Axe-core integration in Playwright</span></div>
+        <div class="code-block"><pre><span class="cm">// tests/e2e/accessibility.spec.ts</span>
+<span class="ck">import</span> { checkA11y, injectAxe } <span class="ck">from</span> <span class="cs">'axe-playwright'</span>;
+
+test(<span class="cs">'matter summary page passes WCAG 2.1 AA'</span>, async ({ page }) => {
+  <span class="ck">await</span> page.goto(<span class="cs">`${STAGING_URL}/matter-summary`</span>);
+  <span class="ck">await</span> injectAxe(page);
+  <span class="ck">await</span> checkA11y(page, <span class="ck">undefined</span>, {
+    runOnly: { type: <span class="cs">'tag'</span>, values: [<span class="cs">'wcag2a'</span>, <span class="cs">'wcag2aa'</span>] },
+    detailedReport: <span class="cn">true</span>,
+    detailedReportOptions: { html: <span class="cn">true</span> },
+  });
+});
+<span class="cm">// axe-core catches: missing alt text, colour contrast, missing labels, etc.
+// accessibility-check subagent catches: error message quality, loading descriptions</span></pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8: Performance & Scale ══ -->
+<div class="sec" id="s8">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">08</span><span class="st">Layer 4 — Performance, Scale &amp; Resilience</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Performance and scale tests apply selectively — not every solution needs load testing. Apply based on business criticality and expected usage pattern.</p>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">8.1</span><span class="subt">Performance thresholds by solution type</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <div class="tw">
+          <table>
+            <thead><tr><th>Component</th><th>Threshold</th><th>Measured how</th><th>Test tool</th></tr></thead>
+            <tbody>
+              <tr><td>MCP connector response (p95)</td><td>&lt; 3s</td><td>Time from tool call received to response returned, excluding Claude inference</td><td>Azure Load Testing / k6</td></tr>
+              <tr><td>iManage search_matter</td><td>&lt; 2s</td><td>p95 from staging against realistic query set</td><td>k6 with iManage test workspaces</td></tr>
+              <tr><td>.NET API endpoints (p95)</td><td>&lt; 500ms</td><td>HTTP response time, GET endpoints</td><td>Azure Load Testing</td></tr>
+              <tr><td>React app first meaningful paint</td><td>&lt; 2s on Standard enterprise device</td><td>Playwright performance API + Lighthouse</td><td>Playwright + Lighthouse CI</td></tr>
+              <tr><td>SPFx web part load time</td><td>&lt; 3s from page load to interactive</td><td>SharePoint staging site with Playwright timing</td><td>Playwright</td></tr>
+              <tr><td>Claude API latency (streaming start)</td><td>&lt; 5s to first token</td><td>Measured at application layer — cannot control Anthropic API directly</td><td>Custom Node.js monitor</td></tr>
+              <tr><td>RAG pipeline (query to response)</td><td>&lt; 8s total</td><td>Time from user query to final response including retrieval + generation</td><td>Custom Python benchmark</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">8.2</span><span class="subt">Load testing — k6 and Azure Load Testing</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Load testing applies to P1 solutions and any MCP connector used by more than one solution. Tests are run in the staging environment before production deployment, and monthly for P1 connectors. Three load profiles are standard:</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Profile</th><th>Pattern</th><th>Applies to</th><th>Pass criteria</th></tr></thead>
+            <tbody>
+              <tr><td>Baseline</td><td>Sustained expected peak load for 10 minutes</td><td>All P1 solutions</td><td>p95 &lt; threshold; zero errors; no memory growth &gt; 20%</td></tr>
+              <tr><td>Spike</td><td>5× normal load for 2 minutes (e.g. firm-wide Monday morning)</td><td>P1 solutions; shared connectors</td><td>p95 &lt; 2× threshold; recovery to baseline within 60s; zero data errors</td></tr>
+              <tr><td>Soak</td><td>75% of peak load for 4 hours</td><td>P1 connectors; scheduled task infrastructure</td><td>No memory leaks; no OAuth token expiry failures; audit log completeness maintained</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cbl"><span class="cbt">k6 baseline script — iManage connector</span></div>
+        <div class="code-block"><pre><span class="cm">// tests/load/imanage-baseline.js</span>
+<span class="ck">import</span> http <span class="ck">from</span> <span class="cs">'k6/http'</span>;
+<span class="ck">import</span> { check, sleep } <span class="ck">from</span> <span class="cs">'k6'</span>;
+
+<span class="ck">export const</span> options = {
+  vus: <span class="cn">20</span>,      <span class="cm">// 20 virtual attorneys concurrently</span>
+  duration: <span class="cs">'10m'</span>,
+  thresholds: {
+    http_req_duration: [<span class="cs">'p(95)<3000'</span>],
+    http_req_failed: [<span class="cs">'rate<0.01'</span>],  <span class="cm">// &lt;1% error rate</span>
+  },
+};
+
+<span class="ck">export default function</span>() {
+  <span class="ck">const</span> res = http.post(
+    `${MCP_GATEWAY_STAGING}/imanage/search_matter`,
+    JSON.stringify({ query: <span class="cs">'acquisition agreement'</span>, limit: <span class="cn">10</span> }),
+    { headers: {
+      <span class="cs">'Authorization'</span>: `Bearer ${TEST_USER_TOKEN}`,
+      <span class="cs">'Content-Type'</span>: <span class="cs">'application/json'</span>
+    }}
+  );
+  check(res, {
+    <span class="cs">'status 200'</span>: r => r.status === <span class="cn">200</span>,
+    <span class="cs">'has results array'</span>: r => JSON.parse(r.body).items !== <span class="ck">undefined</span>,
+    <span class="cs">'audit log header present'</span>: r => r.headers[<span class="cs">'X-Audit-ID'</span>] !== <span class="ck">undefined</span>,
+  });
+  sleep(<span class="cn">1</span>); <span class="cm">// Simulate realistic pacing</span>
+}</pre></div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">8.3</span><span class="subt">Container Apps scale-to-zero and cold start testing</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Azure Container Apps scale-to-zero is a cost advantage, but cold starts introduce latency that must be characterised and within acceptable bounds. For each MCP connector:</p>
+        <ul>
+          <li>Cold start latency measured: from first request to a scaled-to-zero instance to response received. Maximum acceptable: 8 seconds.</li>
+          <li>Warm start latency: measured after the container is warm. Maximum acceptable: connector-specific threshold from Section 8.1.</li>
+          <li>Scale-up behaviour: verify the connector scales to handle the baseline profile within 30 seconds of load beginning.</li>
+          <li>Key Vault secret retrieval on cold start: verify credentials are retrieved correctly on startup and are not stale.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S9: Security & Compliance ══ -->
+<div class="sec" id="s9">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">09</span><span class="st">Layer 5 — Security, Legal Compliance &amp; Human Acceptance</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">9.1</span><span class="subt">Security test automation — OWASP-aligned</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Security tests run in the Azure DevOps pipeline at three points: on every PR (SAST via Semgrep/SonarQube), before every staging-to-production promotion (the <code>security-audit</code> subagent), and via scheduled weekly scan of production containers (the <code>cve-monitor</code> subagent). The penetration test is the only step requiring external engagement — applied before any P1 connector's first production deployment.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Test</th><th>Tool</th><th>Trigger</th><th>Grader</th><th>Failure action</th></tr></thead>
+            <tbody>
+              <tr><td>SAST (Static Analysis)</td><td>Semgrep + SonarQube</td><td>Every PR</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Critical = block merge; High = warn</td></tr>
+              <tr><td>Dependency CVE</td><td>npm audit / pip-audit / dotnet list</td><td>Every PR + weekly</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Critical = block; High = 14-day SLA</td></tr>
+              <tr><td>Container image scan</td><td>Azure Container Registry scanning + Trivy</td><td>Every image build + weekly</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Critical = suspend connector within 72hr</td></tr>
+              <tr><td>Secret detection</td><td>credential-scan hook + GitLeaks in pipeline</td><td>Every commit + PR</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>Block merge; rotate immediately</td></tr>
+              <tr><td>OWASP deep review</td><td>security-audit subagent (Opus)</td><td>Pre-production promotion</td><td><span class="tag tg-llm">LLM-GRADED</span></td><td>Critical = block deployment; requires IT Security sign-off</td></tr>
+              <tr><td>Prompt injection test</td><td>mcp-connector-test subagent</td><td>Connector code change + pre-production</td><td><span class="tag tg-det">DETERMINISTIC</span></td><td>FAIL = block deployment</td></tr>
+              <tr><td>Penetration test</td><td>IT Security + external assessor</td><td>First production deployment of P1 connectors</td><td><span class="tag tg-hum">HUMAN REVIEW</span></td><td>Critical findings = block; High = risk acceptance required</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">9.2</span><span class="subt">Legal compliance automated checks</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>The <code>legal-compliance-check</code> subagent (from the Delivery Automation guide) is the primary mechanism for automated legal compliance testing. It is backed by deterministic pre-checks that run first — if any deterministic check fails, the LLM judge is not invoked, saving cost and time.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Check</th><th>Primary enforcement</th><th>Automated?</th></tr></thead>
+            <tbody>
+              <tr><td>Attorney review disclaimer in output</td><td>Grep for "attorney" → LLM judge for quality</td><td>Yes — in eval runner</td></tr>
+              <tr><td>No matter content in application logs</td><td>Log scan in CI; <code>test_no_matter_content_in_logs</code> pytest</td><td>Yes — in unit tests</td></tr>
+              <tr><td>Ethical wall not bypassable via params</td><td>security-audit subagent; connector test</td><td>Yes — in integration tests</td></tr>
+              <tr><td>Data minimisation (only required fields retrieved)</td><td>Unit test: assert only declared fields in API responses</td><td>Yes — in unit tests</td></tr>
+              <tr><td>Matter content not cached outside approved storage</td><td>Code review (PR review subagent); legal-compliance-check</td><td>Partial — LLM-assisted code review</td></tr>
+              <tr><td>Attorney review gate in UI workflow</td><td>Playwright E2E — assert confirmation step exists before external send</td><td>Yes — in E2E tests</td></tr>
+              <tr><td>Output does not claim to be "advice" or "opinion"</td><td>LLM judge (attorney-disclaimer rubric)</td><td>Yes — in eval runner</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="subh" onclick="tss(this)">
+        <span class="subnum">9.3</span><span class="subt">Human acceptance testing — when and how</span>
+        <svg class="subc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="subb">
+        <p>Human acceptance testing is not UAT in the traditional sense — it is specifically targeted at the things automated tests cannot adequately cover. It is required for P1 solutions and any solution that a qualified attorney will rely on for client-facing work.</p>
+        <ul>
+          <li><strong>Initial LLM rubric calibration:</strong> Before any LLM judge is trusted, an attorney or senior analyst reviews 20–30 outputs and labels them PASS/FAIL. The LLM judge is not deployed until it agrees with human labels on ≥ 90% of the calibration set.</li>
+          <li><strong>P1 acceptance sign-off:</strong> A named attorney from the relevant practice group runs the solution on 5–10 real scenarios (using test matter data) and signs off that outputs meet professional quality standards before production deployment.</li>
+          <li><strong>Post-model-update review:</strong> When a major model update changes output quality beyond the 10% drift threshold, a small human review (5 examples) confirms the regression is real before a fix is prioritised.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S10: Azure DevOps Pipeline ══ -->
+<div class="sec" id="s10">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">10</span><span class="st">Azure DevOps Pipeline — Full Test Sequence</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>The pipeline runs these stages in sequence for every PR and deployment. Stages gate on each other — a failure in any stage blocks promotion to the next. The pipeline differs slightly for code-built vs Cowork/Hybrid solutions, noted below.</p>
+
+    <div class="pipeline">
+      <div class="pipe-stage" style="background:#4a148c">
+        <div class="pipe-stage-name">1. Unit tests</div>
+        <div class="pipe-stage-sub">Jest · pytest · xUnit&lt;60s</div>
+        <div class="pipe-arrow">›</div>
+      </div>
+      <div class="pipe-stage" style="background:#1565c0">
+        <div class="pipe-stage-name">2. SAST + secrets</div>
+        <div class="pipe-stage-sub">Semgrep · GitLeaks</div>
+        <div class="pipe-arrow">›</div>
+      </div>
+      <div class="pipe-stage" style="background:#00695c">
+        <div class="pipe-stage-name">3. AI eval suite</div>
+        <div class="pipe-stage-sub">LLM judges · rubrics</div>
+        <div class="pipe-arrow">›</div>
+      </div>
+      <div class="pipe-stage" style="background:#795548">
+        <div class="pipe-stage-name">4. Build + scan</div>
+        <div class="pipe-stage-sub">Docker · Trivy CVE</div>
+        <div class="pipe-arrow">›</div>
+      </div>
+      <div class="pipe-stage" style="background:#e65100">
+        <div class="pipe-stage-name">5. Staging deploy</div>
+        <div class="pipe-stage-sub">Pre-deploy gate</div>
+        <div class="pipe-arrow">›</div>
+      </div>
+      <div class="pipe-stage" style="background:#2e7d32">
+        <div class="pipe-stage-name">6. Integration + E2E</div>
+        <div class="pipe-stage-sub">Playwright · connector</div>
+        <div class="pipe-arrow">›</div>
+      </div>
+      <div class="pipe-stage" style="background:#4e342e">
+        <div class="pipe-stage-name">7. Prod gate</div>
+        <div class="pipe-stage-sub">Security · lead approval</div>
+      </div>
+    </div>
+
+    <div class="tw" style="margin-top:1.25rem">
+      <table>
+        <thead><tr><th>Stage</th><th>Runs on</th><th>Typical duration</th><th>Failure action</th><th>Code-built</th><th>Cowork / Hybrid</th></tr></thead>
+        <tbody>
+          <tr><td>1. Unit tests</td><td>Every PR + every commit to main</td><td>30–90s</td><td>Block merge</td><td><span class="tag tg-pass">REQUIRED</span></td><td><span class="tag tg-pass">REQUIRED</span> (connector / API tests)</td></tr>
+          <tr><td>2. SAST + secret scan</td><td>Every PR</td><td>2–5min</td><td>Critical = block; High = warn</td><td><span class="tag tg-pass">REQUIRED</span></td><td><span class="tag tg-pass">REQUIRED</span></td></tr>
+          <tr><td>3. AI eval suite</td><td>Every PR + nightly</td><td>5–15min</td><td>Any FAIL rubric = block</td><td><span class="tag tg-pass">REQUIRED</span> if AI output</td><td><span class="tag tg-pass">REQUIRED</span></td></tr>
+          <tr><td>4. Build + image scan</td><td>Merge to main + release branch</td><td>5–10min</td><td>Critical CVE = block</td><td><span class="tag tg-pass">REQUIRED</span></td><td>API/connector side only</td></tr>
+          <tr><td>5. Staging deploy + gate</td><td>Merge to main</td><td>3–8min</td><td>Gate FAIL = block</td><td><span class="tag tg-pass">REQUIRED</span></td><td><span class="tag tg-pass">REQUIRED</span></td></tr>
+          <tr><td>6. Integration + E2E</td><td>Post staging deploy</td><td>10–30min</td><td>Any FAIL = block promotion</td><td><span class="tag tg-pass">REQUIRED</span></td><td>Integration required; E2E if UI present</td></tr>
+          <tr><td>7. Production gate</td><td>Before production release</td><td>Manual review</td><td>No lead approval = block</td><td><span class="tag tg-pass">REQUIRED</span></td><td><span class="tag tg-pass">REQUIRED</span></td></tr>
+          <tr><td>+ Load test</td><td>Pre-production (P1 only) + monthly</td><td>30–60min</td><td>Threshold breach = block P1</td><td>P1 required</td><td>P1 + shared connectors</td></tr>
+          <tr><td>+ Legal compliance</td><td>Before first production + major version</td><td>15–30min + human</td><td>FAIL = block deployment</td><td>If matter data</td><td><span class="tag tg-pass">REQUIRED</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S11: Skills & Subagents ══ -->
+<div class="sec" id="s11">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">11</span><span class="st">QA Skills &amp; Subagents</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <div class="tw">
+      <table>
+        <thead><tr><th>Extension</th><th>Type</th><th>Invocation</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><strong>eval-runner</strong></td><td><span class="tag tg-sub">SUBAGENT</span></td><td>Auto: on every PR; nightly in pipeline</td><td>Runs the full LLM eval suite for a solution against the rubric library. Compares to regression baseline. Posts results to PR and Azure DevOps. FAIL = block merge.</td></tr>
+          <tr><td><strong>test-gen</strong></td><td><span class="tag tg-sub">SUBAGENT</span></td><td>Auto: after new function/tool creation</td><td>Generates unit tests for new functions, API endpoints, and MCP tool implementations following MWS test patterns. Targets: Jest for TS, pytest for Python, xUnit for .NET.</td></tr>
+          <tr><td><strong>e2e-test</strong></td><td><span class="tag tg-skill">SKILL</span></td><td>Manual: <code>/e2e-test [env]</code></td><td>Orchestrates Playwright E2E suite against staging or production. Includes axe-core accessibility scan. Generates HTML report and uploads to Azure DevOps test results.</td></tr>
+          <tr><td><strong>load-test</strong></td><td><span class="tag tg-skill">SKILL</span></td><td>Manual: <code>/load-test [profile] [solution-id]</code></td><td>Runs k6 load test at specified profile (baseline / spike / soak). Interprets results against thresholds. Generates report for engineering lead.</td></tr>
+          <tr><td><strong>security-audit</strong></td><td><span class="tag tg-sub">SUBAGENT</span></td><td>Auto: security-relevant changes; Manual: <code>/security-audit</code></td><td>OWASP + MWS-specific security review using Opus model. Produces CRITICAL/HIGH/MEDIUM/LOW findings with specific file:line references and remediation guidance.</td></tr>
+          <tr><td><strong>eval-calibrate</strong></td><td><span class="tag tg-skill">SKILL</span></td><td>Manual: <code>/eval-calibrate [rubric] [solution-id]</code></td><td>Guides analyst through LLM rubric calibration process. Presents 30 outputs for human labelling. Measures judge agreement rate. Certifies rubric as ready for production use when ≥90% agreement achieved.</td></tr>
+          <tr><td><strong>perf-baseline</strong></td><td><span class="tag tg-skill">SKILL</span></td><td>Manual: <code>/perf-baseline [solution-id]</code></td><td>Captures performance baseline (p95 latency, throughput) for a solution at current production traffic. Stores in Azure Repos. Used as comparison for future load tests.</td></tr>
+          <tr><td><strong>test-report</strong></td><td><span class="tag tg-skill">SKILL</span></td><td>Manual: <code>/test-report [solution-id] [period]</code></td><td>Generates test quality report for a solution: pass rate trends, rubric score trends, open security findings, eval coverage gaps. Used in quarterly solution reviews.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S12: Tool Inventory ══ -->
+<div class="sec" id="s12">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">12</span><span class="st">Tool &amp; Framework Inventory</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <div class="tw">
+      <table>
+        <thead><tr><th>Tool</th><th>Layer</th><th>Language / stack</th><th>Purpose</th><th>Hosted where</th></tr></thead>
+        <tbody>
+          <tr><td>Jest</td><td>Unit</td><td>TypeScript / Node.js</td><td>MCP connector unit tests, React component tests</td><td>Dev workstation + CI</td></tr>
+          <tr><td>pytest</td><td>Unit</td><td>Python</td><td>AI pipeline unit tests</td><td>Dev workstation + CI</td></tr>
+          <tr><td>xUnit + FluentAssertions + Moq</td><td>Unit</td><td>.NET / C#</td><td>.NET API unit tests</td><td>Dev workstation + CI</td></tr>
+          <tr><td>Zod / Pydantic</td><td>Unit + Integration</td><td>TS + Python</td><td>Schema validation in tests and runtime</td><td>In-process</td></tr>
+          <tr><td>Anthropic SDK (eval calls)</td><td>AI Eval</td><td>TypeScript + Python</td><td>LLM-as-judge invocations in eval suite</td><td>CI + staging</td></tr>
+          <tr><td>Playwright</td><td>E2E + Accessibility</td><td>TypeScript</td><td>UI automation, browser testing, screenshot comparison</td><td>CI (headless) + staging</td></tr>
+          <tr><td>axe-playwright</td><td>Accessibility</td><td>TypeScript</td><td>WCAG 2.1 AA automated accessibility scanning</td><td>CI + staging</td></tr>
+          <tr><td>Lighthouse CI</td><td>Performance</td><td>Node.js</td><td>Web performance metrics (LCP, FID, CLS) in pipeline</td><td>CI + staging</td></tr>
+          <tr><td>k6</td><td>Load / Performance</td><td>JavaScript</td><td>Load, spike, and soak testing for connectors and APIs</td><td>Azure Load Testing</td></tr>
+          <tr><td>Azure Load Testing</td><td>Load / Performance</td><td>Managed service</td><td>Scalable k6 execution; integrates with Azure DevOps</td><td>Azure (managed)</td></tr>
+          <tr><td>Trivy</td><td>Security</td><td>CLI</td><td>Container image vulnerability scanning</td><td>CI on every build</td></tr>
+          <tr><td>Semgrep</td><td>Security</td><td>CLI + CI integration</td><td>SAST — static analysis for OWASP patterns, MWS custom rules</td><td>CI on every PR</td></tr>
+          <tr><td>GitLeaks</td><td>Security</td><td>CLI + pre-commit</td><td>Secret detection in git history and staged changes</td><td>CI + pre-commit hook</td></tr>
+          <tr><td>pip-audit / npm audit / dotnet list</td><td>Security</td><td>Package managers</td><td>Dependency CVE scanning</td><td>CI on every PR</td></tr>
+          <tr><td>Azure Container Registry scanning</td><td>Security</td><td>Azure managed</td><td>Weekly production container image scan</td><td>Azure (managed)</td></tr>
+          <tr><td>Microsoft Sentinel (audit log validation)</td><td>Integration + Security</td><td>Azure managed</td><td>Verify MCP audit logs arrive correctly in integration tests</td><td>Azure (managed)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S13: Rollout Sequence ══ -->
+<div class="sec" id="s13">
+  <div class="sh" onclick="ts(this)">
+    <span class="sn">13</span><span class="st">Rollout Sequence — What to Build When</span>
+    <svg class="sc" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+  </div>
+  <div class="sb">
+    <p>Build the testing infrastructure in the same phased sequence as the platform itself — each layer of tests supports the platform layer it validates.</p>
+
+    <div class="pf">
+      <div class="pf-step">
+        <div class="pf-num-col"><div class="pf-circle" style="background:#4a148c">P1</div><div class="pf-line"></div></div>
+        <div class="pf-body">
+          <div class="pf-title">Phase 1 — Foundation (now, alongside platform Phase 1)</div>
+          <div class="pf-desc">Unit test patterns for MCP connectors. SAST (Semgrep) and secret scan (GitLeaks) in CI pipeline. Brand voice LLM judge + attorney disclaimer judge — the two highest-value, lowest-cost evals. Calibration process documented and first 30-example calibration sets created. <code>test-gen</code> and <code>eval-runner</code> subagents deployed.</div>
+          <div class="pf-tags"><span class="tag tg-det">DETERMINISTIC</span><span class="tag tg-llm">LLM-GRADED</span></div>
+        </div>
+      </div>
+      <div class="pf-step">
+        <div class="pf-num-col"><div class="pf-circle" style="background:#1565c0">P2</div><div class="pf-line"></div></div>
+        <div class="pf-body">
+          <div class="pf-title">Phase 2 — iManage connector and pipeline (alongside platform Phase 2)</div>
+          <div class="pf-desc">Full iManage connector unit test suite (5 required properties). Integration tests in staging against sandboxed iManage workspaces. Ethical wall enforcement tests. Audit log to Sentinel validation. Playwright E2E for any UI surfaces in the first connector-backed applications. axe-core accessibility scanning in CI.</div>
+          <div class="pf-tags"><span class="tag tg-det">DETERMINISTIC</span><span class="tag tg-llm">LLM-GRADED</span></div>
+        </div>
+      </div>
+      <div class="pf-step">
+        <div class="pf-num-col"><div class="pf-circle" style="background:#00695c">P3</div><div class="pf-line"></div></div>
+        <div class="pf-body">
+          <div class="pf-title">Phase 3 — Scale and compliance (alongside platform Phase 3)</div>
+          <div class="pf-desc">k6 load testing for iManage connector and M365 connector. Baseline load profiles established. Legal compliance automated checks. <code>security-audit</code> subagent in pre-production gate. Output completeness / accuracy eval rubrics calibrated by practice group attorneys for first Cowork solutions going to P1 production. Human acceptance process formalised.</div>
+          <div class="pf-tags"><span class="tag tg-det">DETERMINISTIC</span><span class="tag tg-llm">LLM-GRADED</span><span class="tag tg-hum">HUMAN REVIEW</span></div>
+        </div>
+      </div>
+      <div class="pf-step">
+        <div class="pf-num-col"><div class="pf-circle" style="background:#e65100">P4</div><div class="pf-line"></div></div>
+        <div class="pf-body">
+          <div class="pf-title">Phase 4 — Full automation and practice-specific evals (alongside platform Phase 4)</div>
+          <div class="pf-desc">Regression baseline management automated. Model update comparison workflow. Practice-specific eval rubrics for M&amp;A, Health Regulatory, and other practice groups. Soak testing for all shared connectors. Performance monitoring dashboards in Azure Monitor. <code>eval-calibrate</code> skill available to AI Solutions Analysts for self-service rubric creation.</div>
+          <div class="pf-tags"><span class="tag tg-det">DETERMINISTIC</span><span class="tag tg-llm">LLM-GRADED</span><span class="tag tg-hum">HUMAN REVIEW</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout good">
+      <div class="cl">KEY INSIGHT</div>
+      <div class="cb">The two highest-ROI investments in this entire framework are: (1) the brand voice + attorney disclaimer LLM judges in Phase 1 — they catch the most frequent and most professionally consequential output quality issues with minimal setup cost; and (2) the iManage connector unit tests in Phase 2 — they validate the most security-sensitive infrastructure component before any attorney data touches it. Build these first, build everything else on top.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+const layerData = [
+  { color:'#4a148c', name:'Layer 1 — Unit, Component &amp; Connector', items:[
+    {title:'Jest — MCP connector tools',body:'5 required properties: input validation, user token passthrough, audit log emission, error handling, output schema. Auto-generated by test-gen subagent.',tags:['DETERMINISTIC','HOOK']},
+    {title:'pytest — Python pipeline',body:'Stage boundary validation, chunk metadata completeness, no matter content in logs, credential mock verification.',tags:['DETERMINISTIC']},
+    {title:'xUnit — .NET API layer',body:'[MatterAuthorize] enforcement, HTTP status mapping, iManage workspace ID validation, CancellationToken propagation.',tags:['DETERMINISTIC']},
+  ]},
+  { color:'#1565c0', name:'Layer 2 — AI Output Evaluation', items:[
+    {title:'Brand voice judge',body:'5 binary criteria: no prohibited phrases, correct firm name, no anthropomorphism, active voice, second person. Run on every PR.',tags:['LLM-GRADED']},
+    {title:'Attorney disclaimer judge',body:'Presence of review disclaimer, prominence, no "advice" characterisation. FAIL blocks deployment.',tags:['LLM-GRADED']},
+    {title:'Completeness / accuracy / hallucination',body:'Scored 1–5 per criterion. Average ≥ 4.0 required. Requires 20-example calibration set per solution.',tags:['LLM-GRADED']},
+    {title:'Trace-based behaviour judge',body:'Validates tool call sequence and step quality for multi-step agent solutions.',tags:['DETERMINISTIC','LLM-GRADED']},
+    {title:'Regression baseline',body:'Nightly comparison to gold standard outputs. &gt;10% drift triggers owner alert.',tags:['LLM-GRADED']},
+  ]},
+  { color:'#00695c', name:'Layer 3 — UI &amp; End-to-End', items:[
+    {title:'Playwright — critical path flows',body:'Attorney navigates to solution, submits task, sees results. Runs post every staging deployment.',tags:['DETERMINISTIC']},
+    {title:'Playwright — matter data display',body:'Privilege indicators, attorney disclaimer in output, colour-independent status indicators.',tags:['DETERMINISTIC']},
+    {title:'axe-core accessibility',body:'WCAG 2.1 AA automated scan on every UI surface. In CI pipeline.',tags:['DETERMINISTIC']},
+    {title:'Accessibility-check subagent',body:'Contextual WCAG checks axe-core misses: error message quality, loading state descriptions.',tags:['LLM-GRADED']},
+    {title:'Cross-browser (Chrome, Edge, Firefox)',body:'Full Playwright suite on all supported browsers for the relevant persona.',tags:['DETERMINISTIC']},
+  ]},
+  { color:'#e65100', name:'Layer 4 — Performance &amp; Scale', items:[
+    {title:'k6 — baseline load test',body:'20 concurrent users, 10 minutes. p95 &lt; 3s for connectors, &lt; 500ms for APIs. P1 solutions pre-production.',tags:['DETERMINISTIC']},
+    {title:'k6 — spike test',body:'5× normal load for 2 minutes. Recovery within 60s. P1 and shared connectors.',tags:['DETERMINISTIC']},
+    {title:'k6 — soak test',body:'75% of peak for 4 hours. No memory leaks, no OAuth failures. P1 connectors.',tags:['DETERMINISTIC']},
+    {title:'Container cold start test',body:'Scale-to-zero cold start &lt; 8s. Key Vault credential retrieval on cold start verified.',tags:['DETERMINISTIC']},
+    {title:'Lighthouse CI',body:'LCP, FID, CLS metrics for React/SPFx UIs. Tracked against baseline in CI.',tags:['DETERMINISTIC']},
+  ]},
+  { color:'#4e342e', name:'Layer 5 — Legal Compliance &amp; Human Acceptance', items:[
+    {title:'Legal compliance — automated',body:'7 automated checks: disclaimer, no matter in logs, ethical wall, data minimisation, no "advice" characterisation, attorney review gate in UI, output schema.',tags:['DETERMINISTIC','LLM-GRADED']},
+    {title:'OWASP security audit (Opus)',body:'OWASP Top 10 + MWS-specific: token passthrough, injection surface, ethical wall bypass. CRITICAL findings block deployment.',tags:['LLM-GRADED']},
+    {title:'Penetration test',body:'External IT Security engagement. Required before first production deployment of any P1 connector.',tags:['HUMAN REVIEW']},
+    {title:'LLM rubric calibration',body:'30 human-reviewed examples per rubric. ≥90% judge agreement required before rubric trusted in CI.',tags:['HUMAN REVIEW']},
+    {title:'P1 attorney acceptance',body:'Named attorney runs solution on 5–10 real test scenarios. Signs off on professional quality before production.',tags:['HUMAN REVIEW']},
+  ]},
+];
+
+const tagClass={DETERMINISTIC:'tg-det','LLM-GRADED':'tg-llm','HUMAN REVIEW':'tg-hum',HOOK:'tg-hook',SUBAGENT:'tg-sub'};
+
+function showLayer(idx){
+  document.querySelectorAll('.pyramid-layer').forEach((l,i)=>l.classList.toggle('active',i===idx));
+  const ld=layerData[idx];
+  const panel=document.getElementById('pyramid-detail');
+  panel.innerHTML=`
+    <div class="pd-title"><span style="width:12px;height:12px;border-radius:3px;background:${ld.color};display:inline-block"></span>${ld.name}</div>
+    <div class="pd-grid">
+      ${ld.items.map(item=>`
+        <div class="pd-item">
+          <div class="pd-item-title">${item.title}</div>
+          <div class="pd-item-body">${item.body}</div>
+          <div class="pd-item-tags">${item.tags.map(t=>`<span class="tag ${tagClass[t]||'tg-det'}">${t}</span>`).join('')}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function toggleRubric(h){
+  h.nextElementSibling.classList.toggle('col');
+  const sv=h.querySelector('svg');
+  if(sv)sv.style.transform=h.nextElementSibling.classList.contains('col')?'':'rotate(180deg)';
+}
+
+function ts(h){h.classList.toggle('col');h.nextElementSibling.classList.toggle('col');updateNav()}
+function tss(h){h.classList.toggle('col');h.nextElementSibling.classList.toggle('col')}
+function ns(id){
+  const el=document.getElementById(id);if(!el)return;
+  if(el.classList.contains('sec')){
+    const h=el.querySelector('.sh'),b=el.querySelector('.sb');
+    if(h&&b&&b.classList.contains('col')){h.classList.remove('col');b.classList.remove('col')}
+  }
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function updateNav(){
+  const secs=document.querySelectorAll('.sec');
+  const links=document.querySelectorAll('.nl');
+  const sy=window.scrollY+120;
+  let aid='hero';
+  secs.forEach(s=>{if(s.offsetTop<=sy)aid=s.id});
+  links.forEach(l=>{
+    l.classList.remove('active');
+    const t=l.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    if(t===aid||(aid==='hero'&&t==='hero'))l.classList.add('active');
+  });
+}
+window.addEventListener('scroll',updateNav);
+document.querySelectorAll('.sb').forEach(b=>b.classList.remove('col'));
+document.querySelectorAll('.sh').forEach(h=>h.classList.remove('col'));
+document.querySelectorAll('.subb').forEach(b=>b.classList.remove('col'));
+document.querySelectorAll('.subh').forEach(h=>h.classList.remove('col'));
+// Rubric bodies start collapsed
+document.querySelectorAll('.rubric-body').forEach(b=>b.classList.add('col'));
+</script>
+</body>
+</html>

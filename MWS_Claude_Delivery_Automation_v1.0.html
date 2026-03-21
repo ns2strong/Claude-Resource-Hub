@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWS Claude — Skills, Hooks & Delivery Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #1a2744;
+  --navy-mid:  #243560;
+  --blue:      #2e5fa5;
+  --blue-lt:   #4a7cc9;
+  --accent:    #c8a04a;
+  --accent-lt: #e8c87a;
+  --bg:        #f4f2ee;
+  --bg-card:   #fdfcfa;
+  --text:      #1c1c1e;
+  --text-mid:  #3d3d40;
+  --text-mute: #6b6b70;
+  --border:    #dbd8d0;
+  /* Extension type colours */
+  --skill-bg:   #eeedfe; --skill-bd:  #534ab7; --skill-tx: #3c3489;
+  --hook-bg:    #faeeda; --hook-bd:   #854f0b; --hook-tx:  #633806;
+  --subagent-bg:#e1f5ee; --subagent-bd:#0f6e56;--subagent-tx:#085041;
+  --plugin-bg:  #faece7; --plugin-bd: #993c1d; --plugin-tx: #712b13;
+  --mcp-bg:     #f1efea; --mcp-bd:    #5f5e5a; --mcp-tx:   #2c2c2a;
+  --team-bg:    #e6f1fb; --team-bd:   #185fa5; --team-tx:  #0c447c;
+  /* Stage colours */
+  --s-ideate:  #7c4dff;
+  --s-design:  #2979ff;
+  --s-dev:     #0097a7;
+  --s-test:    #2e7d32;
+  --s-deploy:  #e65100;
+  --s-operate: #6d4c41;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7}
+
+/* ── Nav ── */
+#nav{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--navy);overflow-y:auto;z-index:100;display:flex;flex-direction:column;padding:0 0 2rem}
+#nav-header{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.5rem}
+#nav-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--accent);letter-spacing:.02em;line-height:1.3;margin-bottom:.25rem}
+#nav-sub{font-size:.7rem;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase}
+.nav-sec-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:.6rem 1.25rem .2rem;font-weight:600}
+.nav-link{display:flex;align-items:center;gap:.5rem;padding:.42rem 1.25rem;color:rgba(255,255,255,.65);text-decoration:none;font-size:.8rem;font-weight:400;transition:all .15s;border-left:2px solid transparent;cursor:pointer}
+.nav-link:hover{color:white;background:rgba(255,255,255,.06)}
+.nav-link.active{color:var(--accent-lt);border-left-color:var(--accent);background:rgba(200,160,74,.1)}
+.nav-link .num{font-family:'IBM Plex Mono',monospace;font-size:.68rem;opacity:.5;min-width:1.8rem}
+#nav::-webkit-scrollbar{width:4px}
+#nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+/* ── Main ── */
+#main{margin-left:260px;min-height:100vh}
+
+/* ── Hero ── */
+#hero{background:linear-gradient(135deg,var(--navy) 0%,#1e3050 40%,#0d2235 100%);padding:5rem 4rem 4rem;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;top:-30%;right:-5%;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(200,160,74,.07) 0%,transparent 65%);pointer-events:none}
+#hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.hero-eyebrow{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:1rem}
+.hero-title{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:white;line-height:1.15;margin-bottom:.5rem}
+.hero-sub{font-family:'Playfair Display',serif;font-size:1.3rem;color:rgba(255,255,255,.55);margin-bottom:2.5rem}
+.hero-meta{display:flex;gap:2rem;flex-wrap:wrap}
+.hmi{display:flex;flex-direction:column;gap:.15rem}
+.hml{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:600}
+.hmv{font-size:.82rem;color:rgba(255,255,255,.8)}
+
+/* ── Extension type legend pills ── */
+.legend-bar{display:flex;gap:.5rem;flex-wrap:wrap;padding:1rem 4rem;background:white;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.legend-pill{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .7rem;border-radius:4px;font-size:.7rem;font-weight:700;letter-spacing:.04em;cursor:default}
+.lp-skill   {background:var(--skill-bg);   color:var(--skill-tx);  border:1px solid var(--skill-bd)}
+.lp-hook    {background:var(--hook-bg);    color:var(--hook-tx);   border:1px solid var(--hook-bd)}
+.lp-subagent{background:var(--subagent-bg);color:var(--subagent-tx);border:1px solid var(--subagent-bd)}
+.lp-plugin  {background:var(--plugin-bg);  color:var(--plugin-tx); border:1px solid var(--plugin-bd)}
+.lp-mcp     {background:var(--mcp-bg);     color:var(--mcp-tx);    border:1px solid var(--mcp-bd)}
+.lp-team    {background:var(--team-bg);     color:var(--team-tx);   border:1px solid var(--team-bd)}
+.legend-bar-label{font-size:.7rem;color:var(--text-mute);align-self:center;margin-right:.25rem;font-weight:500}
+
+/* ── Content ── */
+.content{max-width:900px;margin:0 auto;padding:3rem 4rem 6rem}
+
+/* ── Sections ── */
+.section{margin-bottom:.5rem}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.5rem;background:var(--navy);color:white;cursor:pointer;user-select:none;border-radius:6px 6px 0 0;transition:background .15s;margin-top:2.5rem}
+.section-header:hover{background:var(--navy-mid)}
+.section-header.collapsed{border-radius:6px}
+.section-num{font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--accent);margin-right:.75rem}
+.section-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;flex:1}
+.section-chevron{width:20px;height:20px;transition:transform .25s;opacity:.6}
+.section-header.collapsed .section-chevron{transform:rotate(-90deg)}
+.section-body{background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;padding:2rem 2.5rem 2.5rem}
+.section-body.collapsed{display:none}
+
+/* ── Subsections ── */
+.sub{margin-top:1.75rem}
+.sub-hdr{display:flex;align-items:center;gap:.5rem;margin-bottom:.85rem;cursor:pointer;user-select:none}
+.sub-hdr:hover .sub-title{color:var(--blue)}
+.sub-num{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--blue);font-weight:500}
+.sub-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--navy);transition:color .15s;flex:1}
+.sub-chev{width:14px;height:14px;transition:transform .2s;opacity:.4}
+.sub-hdr.collapsed .sub-chev{transform:rotate(-90deg)}
+.sub-body.collapsed{display:none}
+
+/* ── Typography ── */
+p{margin-bottom:.9rem;color:var(--text-mid);font-size:.92rem}
+p strong{color:var(--text);font-weight:600}
+ul,ol{padding-left:1.4rem;margin-bottom:.9rem}
+li{margin-bottom:.35rem;color:var(--text-mid);font-size:.92rem;line-height:1.6}
+li strong{color:var(--text)}
+code{background:#f0eee8;padding:.1rem .35rem;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:.84em}
+
+/* ── Callout ── */
+.callout{display:flex;margin:1.25rem 0;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.callout-label{padding:.85rem 1rem;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;min-width:76px;text-align:center;display:flex;align-items:center;justify-content:center;writing-mode:horizontal-tb}
+.callout-body{padding:.85rem 1.1rem;font-size:.88rem;color:var(--text-mid);line-height:1.65;flex:1}
+.callout.info .callout-label{background:var(--blue);color:white}.callout.info .callout-body{background:#eef4fd}
+.callout.warn .callout-label{background:#854f0b;color:white}.callout.warn .callout-body{background:#faeeda}
+.callout.key  .callout-label{background:var(--navy);color:var(--accent)}.callout.key .callout-body{background:#f0effa}
+.callout.good .callout-label{background:#0f6e56;color:white}.callout.good .callout-body{background:#e1f5ee}
+
+/* ── Tables ── */
+.tw{overflow-x:auto;margin:1.2rem 0;border-radius:6px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+thead tr{background:var(--navy)}
+thead th{padding:.7rem 1rem;text-align:left;color:white;font-weight:600;font-size:.76rem;letter-spacing:.04em}
+tbody tr:nth-child(even){background:#f8f7f4}
+tbody tr:nth-child(odd){background:var(--bg-card)}
+tbody tr:hover{background:#eff3fb}
+td{padding:.6rem 1rem;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-mid);line-height:1.5;font-size:.84rem}
+td:first-child{font-weight:500;color:var(--text)}
+
+/* ── Extension type tags ── */
+.tag{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:3px;font-size:.68rem;font-weight:700;letter-spacing:.04em;white-space:nowrap;margin:1px}
+.tag-skill   {background:var(--skill-bg);   color:var(--skill-tx);  border:1px solid var(--skill-bd)}
+.tag-hook    {background:var(--hook-bg);    color:var(--hook-tx);   border:1px solid var(--hook-bd)}
+.tag-subagent{background:var(--subagent-bg);color:var(--subagent-tx);border:1px solid var(--subagent-bd)}
+.tag-plugin  {background:var(--plugin-bg);  color:var(--plugin-tx); border:1px solid var(--plugin-bd)}
+.tag-mcp     {background:var(--mcp-bg);     color:var(--mcp-tx);    border:1px solid var(--mcp-bd)}
+.tag-team    {background:var(--team-bg);     color:var(--team-tx);   border:1px solid var(--team-bd)}
+
+/* ── Stage pill ── */
+.stage-pill{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .8rem;border-radius:20px;font-size:.72rem;font-weight:700;letter-spacing:.04em;color:white}
+
+/* ── Lifecycle diagram ── */
+#lifecycle-strip{display:flex;gap:0;margin:1.5rem 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.lc-stage{flex:1;padding:.9rem .7rem;text-align:center;cursor:pointer;transition:filter .15s;position:relative}
+.lc-stage:hover{filter:brightness(1.08)}
+.lc-stage.active{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
+.lc-stage-num{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.55);margin-bottom:.2rem}
+.lc-stage-name{font-size:.8rem;font-weight:700;color:white;margin-bottom:.2rem}
+.lc-stage-sub{font-size:.62rem;color:rgba(255,255,255,.6)}
+.lc-arrow{position:absolute;right:-8px;top:50%;transform:translateY(-50%);width:16px;height:16px;z-index:3;color:rgba(255,255,255,.4)}
+
+/* ── Stage detail panel ── */
+#stage-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1.75rem 2rem;margin-bottom:1.5rem;min-height:200px}
+.stage-panel-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
+.stage-panel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.stage-item{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.85rem 1rem}
+.stage-item-type{margin-bottom:.4rem}
+.stage-item-name{font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.3rem}
+.stage-item-desc{font-size:.8rem;color:var(--text-mid);line-height:1.5}
+.stage-item-mode{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--text-mute);margin-top:.4rem}
+
+/* ── Code block ── */
+.code-block{background:#1e2a3a;border-radius:6px;padding:1.1rem 1.3rem;margin:1rem 0;overflow-x:auto}
+.code-block pre{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:#c8d8f0;line-height:1.7;margin:0}
+.code-block .cm{color:#6a8fa8}.code-block .ck{color:#79c0ff}
+.code-block .cv{color:#a5d6ff}.code-block .cs{color:#a8d8a0}
+.code-block .cn{color:#ffa657}.code-block .ch{color:#ff7b72}
+.code-block-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.code-block-title{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text-mute);letter-spacing:.06em}
+
+/* ── Priority matrix ── */
+.priority-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:1.25rem 0}
+.priority-card{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:1rem 1.1rem;position:relative;overflow:hidden}
+.priority-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.priority-card.p1::before{background:#c0392b}
+.priority-card.p2::before{background:#e67e22}
+.priority-card.p3::before{background:#2980b9}
+.priority-badge{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}
+.p1 .priority-badge{color:#c0392b}
+.p2 .priority-badge{color:#e67e22}
+.p3 .priority-badge{color:#2980b9}
+.priority-title{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:.35rem}
+.priority-body{font-size:.8rem;color:var(--text-mid);line-height:1.5}
+
+/* ── Directory tree ── */
+.tree{background:#1e2a3a;border-radius:6px;padding:1.25rem 1.5rem;margin:1rem 0;font-family:'IBM Plex Mono',monospace;font-size:.78rem;line-height:1.9;color:#c8d8f0}
+.tree-dir{color:#79c0ff;font-weight:500}
+.tree-file{color:#a8d8a0}
+.tree-comment{color:#6a8fa8}
+.tree-indent{padding-left:1.2rem;display:block}
+
+/* ── Hook event table special ── */
+.hook-event{font-family:'IBM Plex Mono',monospace;font-size:.75rem;background:var(--hook-bg);color:var(--hook-tx);padding:.15rem .4rem;border-radius:3px;border:1px solid var(--hook-bd)}
+
+/* ── Scrollbar ── */
+#nav::-webkit-scrollbar-track{background:transparent}
+
+@media print{#nav,#legend-bar{display:none}#main{margin-left:0}.section-body.collapsed{display:block!important}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div id="nav-header">
+    <div id="nav-logo">McDermott<br>Will &amp; Schulte</div>
+    <div id="nav-sub">Claude AI Platform</div>
+  </div>
+  <div><div class="nav-sec-label">Overview</div>
+    <a class="nav-link active" onclick="navScrollTo('hero')"><span class="num">—</span>Introduction</a>
+    <a class="nav-link" onclick="navScrollTo('s1')"><span class="num">1</span>Extension Model Primer</a>
+    <a class="nav-link" onclick="navScrollTo('s2')"><span class="num">2</span>Lifecycle Overview</a>
+  </div>
+  <div><div class="nav-sec-label">By lifecycle stage</div>
+    <a class="nav-link" onclick="navScrollTo('s3')"><span class="num">3</span>Ideation &amp; Design</a>
+    <a class="nav-link" onclick="navScrollTo('s4')"><span class="num">4</span>Development</a>
+    <a class="nav-link" onclick="navScrollTo('s5')"><span class="num">5</span>Testing &amp; Validation</a>
+    <a class="nav-link" onclick="navScrollTo('s6')"><span class="num">6</span>Deployment</a>
+    <a class="nav-link" onclick="navScrollTo('s7')"><span class="num">7</span>Operations &amp; Monitoring</a>
+  </div>
+  <div><div class="nav-sec-label">Enterprise standards</div>
+    <a class="nav-link" onclick="navScrollTo('s8')"><span class="num">8</span>Branding &amp; Coding Standards</a>
+    <a class="nav-link" onclick="navScrollTo('s9')"><span class="num">9</span>Security &amp; Compliance</a>
+    <a class="nav-link" onclick="navScrollTo('s10')"><span class="num">10</span>Plugin Architecture</a>
+    <a class="nav-link" onclick="navScrollTo('s11')"><span class="num">11</span>Repository Structure</a>
+    <a class="nav-link" onclick="navScrollTo('s12')"><span class="num">12</span>Build &amp; Rollout Sequence</a>
+  </div>
+</nav>
+
+<div id="main">
+  <div id="hero">
+    <div class="hero-eyebrow">Skills · Hooks · Subagents · Plugins · Agent Teams — Delivery Automation Reference</div>
+    <div class="hero-title">Delivery Automation<br>&amp; Extension Library</div>
+    <div class="hero-sub">Skills, Hooks, Subagents, and Plugins across the full solution lifecycle</div>
+    <div class="hero-meta">
+      <div class="hmi"><span class="hml">Document</span><span class="hmv">Claude AI Platform v1.0</span></div>
+      <div class="hmi"><span class="hml">Scope</span><span class="hmv">Claude Code · Cowork · Azure DevOps pipeline</span></div>
+      <div class="hmi"><span class="hml">Companion documents</span><span class="hmv">Technical Architecture · Governance Standard</span></div>
+    </div>
+  </div>
+
+  <div id="legend-bar" class="legend-bar">
+    <span class="legend-bar-label">Extension types:</span>
+    <span class="legend-pill lp-skill">SKILL</span>
+    <span class="legend-pill lp-hook">HOOK</span>
+    <span class="legend-pill lp-subagent">SUBAGENT</span>
+    <span class="legend-pill lp-team">AGENT TEAM</span>
+    <span class="legend-pill lp-plugin">PLUGIN</span>
+    <span class="legend-pill lp-mcp">MCP</span>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ S1: Extension Model Primer ══ -->
+    <div class="section" id="s1">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">01</span>
+        <span class="section-title">Claude Code Extension Model — Primer</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Claude Code has six distinct extension points. Each solves a different problem. The enterprise delivery system uses all six, layered so that governance controls are automatic and non-bypassable, quality standards are encoded once and applied everywhere, and developers spend their time on business logic rather than ceremony.</p>
+
+        <div class="tw">
+          <table>
+            <thead><tr><th>Extension type</th><th>What it is</th><th>How it activates</th><th>Primary use at MWS</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="tag tag-skill">SKILL</span></td>
+                <td>Markdown playbook that teaches Claude a repeatable workflow. Invoked as a slash command or auto-detected from context.</td>
+                <td>Manual <code>/skill-name</code> OR automatic when Claude matches context to description</td>
+                <td>Coding standards, branding checks, document templates, architecture patterns, MCP connector scaffolding</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-hook">HOOK</span></td>
+                <td>Shell script that fires deterministically at a lifecycle event — before/after a tool call, session start/end, pre-commit. Does not involve AI reasoning.</td>
+                <td>Automatic, event-driven, always fires — cannot be bypassed by Claude</td>
+                <td>Lint enforcement, credential scanning, security gates, brand validation, audit logging, test runners</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-subagent">SUBAGENT</span></td>
+                <td>Isolated Claude instance with its own context window, tool permissions, and instructions. Runs in parallel or sequentially as a specialist.</td>
+                <td>Spawned by lead Claude agent when task matches specialist description, or explicitly invoked</td>
+                <td>PR review, security audit, test generation, documentation, compliance check — heavy tasks that would pollute main context</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-team">AGENT TEAM</span></td>
+                <td>Coordinated group of agents with defined roles. Lead agent delegates to specialists. Configured via prompt and optional teams.json.</td>
+                <td>Triggered by lead agent; teammates inherit permissions with optional fine-tuning via hooks</td>
+                <td>Full feature delivery pipeline — architect + developer + tester + security auditor running in parallel on complex deliverables</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-plugin">PLUGIN</span></td>
+                <td>Packaged bundle of skills, hooks, subagents, and MCP connections. Installable from the firm marketplace. Versioned and governed.</td>
+                <td>All components activate automatically on session start after installation</td>
+                <td>MWS standard dev toolchain, practice-group packs, MCP connector bundles — distributed via private GitHub as plugin source</td>
+              </tr>
+              <tr>
+                <td><span class="tag tag-mcp">MCP</span></td>
+                <td>External system connection via Model Context Protocol. Gives Claude tools to read from and act on iManage, M365, DevOps, databases.</td>
+                <td>Available as tools in any session where the MCP server is declared in project config</td>
+                <td>iManage document access, Azure DevOps context, M365, internal APIs — all routing through the MWS governance gateway</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout key">
+          <div class="callout-label">KEY DISTINCTION</div>
+          <div class="callout-body"><strong>Hooks are the only extension type that is deterministic and non-bypassable.</strong> Skills and subagents can be ignored if Claude doesn't recognise the context. Hooks always fire at their event trigger regardless of what Claude is doing. This makes them the right tool for mandatory governance controls — credential scanning, lint gates, security validation. Skills are the right tool for repeatable workflows that Claude applies with judgment. Choose deliberately.</div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">1.1</span>
+            <span class="sub-title">Hook event reference</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Hooks fire at specific lifecycle events inside a Claude Code session. Understanding the event model is essential for placing governance controls at the right moment.</p>
+            <div class="tw">
+              <table>
+                <thead><tr><th>Event</th><th>When it fires</th><th>Typical MWS use</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="hook-event">PreToolUse</span></td><td>Before any tool call (Write, Bash, Edit, MCP tool). Can inspect and block.</td><td>Block writes to protected files, intercept credential patterns, validate MCP tool calls against allowlist</td></tr>
+                  <tr><td><span class="hook-event">PostToolUse</span></td><td>After any tool call completes. Can inspect result, trigger follow-on actions.</td><td>Run linter after file write, run tests after code changes, log MCP tool calls to audit sink</td></tr>
+                  <tr><td><span class="hook-event">SessionStart</span></td><td>When a Claude Code session begins.</td><td>Load project context, validate developer workstation compliance, inject MWS coding standards reminder</td></tr>
+                  <tr><td><span class="hook-event">Stop</span></td><td>When Claude finishes a task or session ends.</td><td>Extract learned patterns, run final security scan, generate session summary, notify Azure DevOps</td></tr>
+                  <tr><td><span class="hook-event">PreCommit</span></td><td>Before a git commit is made.</td><td>Block commits with credential files (.env, .key, .pem), enforce commit message format, run pre-commit security scan</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">1.2</span>
+            <span class="sub-title">Invocation modes and when to use each</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <div class="tw">
+              <table>
+                <thead><tr><th>Mode</th><th>How</th><th>Use when</th><th>Avoid when</th></tr></thead>
+                <tbody>
+                  <tr><td>Auto-invocation (skill)</td><td>Claude matches context to skill description</td><td>Standards that should always apply without developer remembering to invoke them — branding, coding style</td><td>Destructive or deployment actions — use <code>disable-model-invocation: true</code></td></tr>
+                  <tr><td>Manual slash command</td><td>Developer types <code>/skill-name</code></td><td>Deliberate workflows: deploy, release, major refactor, security scan on demand</td><td>Every file write or test run — that's hook territory</td></tr>
+                  <tr><td>Hook (automatic)</td><td>Event fires unconditionally</td><td>Non-negotiable gates: credential scan, lint, mandatory test run</td><td>Anything requiring AI judgment — hooks run shell scripts, not Claude reasoning</td></tr>
+                  <tr><td>Subagent delegation</td><td>Lead Claude spawns specialist</td><td>Deep parallel work: security audit, test generation, PR review</td><td>Simple single-file tasks — the overhead isn't worth it</td></tr>
+                  <tr><td>Agent Team</td><td>Multi-agent orchestration</td><td>Complex feature delivery requiring parallel specialist work</td><td>Routine development — overkill for most individual tasks</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S2: Lifecycle Overview ══ -->
+    <div class="section" id="s2">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">02</span>
+        <span class="section-title">Solution Lifecycle Overview</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Click any stage below to see the full extension inventory for that phase. The colour of each stage corresponds to its lifecycle position. Every stage has mandatory hooks (non-bypassable), recommended skills (auto or manual), and optional subagents for complex workloads.</p>
+
+        <div id="lifecycle-strip">
+          <div class="lc-stage" style="background:#4a148c" onclick="showStage(0)" data-idx="0">
+            <div class="lc-stage-num">01</div>
+            <div class="lc-stage-name">Ideation</div>
+            <div class="lc-stage-sub">Brief · spec · design</div>
+          </div>
+          <div class="lc-stage" style="background:#1565c0" onclick="showStage(1)" data-idx="1">
+            <div class="lc-stage-num">02</div>
+            <div class="lc-stage-name">Development</div>
+            <div class="lc-stage-sub">Code · standards · review</div>
+          </div>
+          <div class="lc-stage" style="background:#00695c" onclick="showStage(2)" data-idx="2">
+            <div class="lc-stage-num">03</div>
+            <div class="lc-stage-name">Testing</div>
+            <div class="lc-stage-sub">Unit · integration · E2E</div>
+          </div>
+          <div class="lc-stage" style="background:#e65100" onclick="showStage(3)" data-idx="3">
+            <div class="lc-stage-num">04</div>
+            <div class="lc-stage-name">Deployment</div>
+            <div class="lc-stage-sub">Gate · release · verify</div>
+          </div>
+          <div class="lc-stage" style="background:#4e342e" onclick="showStage(4)" data-idx="4">
+            <div class="lc-stage-num">05</div>
+            <div class="lc-stage-name">Operations</div>
+            <div class="lc-stage-sub">Monitor · patch · evolve</div>
+          </div>
+        </div>
+
+        <div id="stage-panel">
+          <div class="stage-panel-title" style="color:#888">← Select a stage above to see its extension inventory</div>
+        </div>
+
+        <p>The table below is the complete inventory — all extensions across all stages. Sections 3–7 provide full specifications, code samples, and rationale for each entry.</p>
+
+        <div class="tw">
+          <table>
+            <thead><tr><th>Stage</th><th>Extension name</th><th>Type</th><th>Invocation</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Ideation</td><td>solution-brief</td><td><span class="tag tag-skill">SKILL</span></td><td>Manual <code>/solution-brief</code></td><td>Generate structured solution brief from conversation; auto-populates CLAUDE.md skeleton</td></tr>
+              <tr><td>Ideation</td><td>architecture-review</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto-spawned on design tasks</td><td>Reviews proposed architecture against MWS standards; flags SharePoint/Container Apps decision</td></tr>
+              <tr><td>Ideation</td><td>legal-domain-context</td><td><span class="tag tag-skill">SKILL</span></td><td>Auto on legal domain tasks</td><td>Injects legal workflow context, matter sensitivity rules, privilege considerations into design</td></tr>
+              <tr><td>Dev</td><td>mws-coding-standards</td><td><span class="tag tag-skill">SKILL</span></td><td>Auto on every file write</td><td>Enforces MWS .NET, TypeScript, Python coding standards, naming conventions, error handling patterns</td></tr>
+              <tr><td>Dev</td><td>mws-branding</td><td><span class="tag tag-skill">SKILL</span></td><td>Auto on UI/content files</td><td>Enforces MWS brand voice, forbidden phrases, design token usage, accessibility requirements</td></tr>
+              <tr><td>Dev</td><td>lint-on-write</td><td><span class="tag tag-hook">HOOK</span></td><td>PostToolUse:Write — always</td><td>Runs ESLint/Prettier (TS), Black/Ruff (Python), dotnet format (.NET) immediately after any file write</td></tr>
+              <tr><td>Dev</td><td>credential-scan</td><td><span class="tag tag-hook">HOOK</span></td><td>PostToolUse:Write — always</td><td>Scans every written file for secrets, keys, tokens, connection strings; blocks and alerts immediately</td></tr>
+              <tr><td>Dev</td><td>mcp-connector-scaffold</td><td><span class="tag tag-skill">SKILL</span></td><td>Manual <code>/new-connector</code></td><td>Scaffolds new MCP connector following MWS architecture pattern — user token passthrough, gateway registration, audit logging</td></tr>
+              <tr><td>Dev</td><td>pr-review</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto on every PR</td><td>Full code review: security, data handling, CLAUDE.md compliance, coding standards, test coverage</td></tr>
+              <tr><td>Dev</td><td>test-gen</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto after new functions</td><td>Generates unit tests for new functions and MCP tool implementations in the project's test framework</td></tr>
+              <tr><td>Dev</td><td>doc-gen</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto on public interfaces</td><td>Generates JSDoc/XML doc comments for public APIs, MCP tool definitions, and connector interfaces</td></tr>
+              <tr><td>Dev</td><td>pre-commit-gate</td><td><span class="tag tag-hook">HOOK</span></td><td>PreCommit — always</td><td>Blocks commits containing .env/.key/.pem files, enforces commit message format, runs credential scan</td></tr>
+              <tr><td>Testing</td><td>test-runner</td><td><span class="tag tag-hook">HOOK</span></td><td>PostToolUse:Write — always</td><td>Runs relevant test suite after code changes; fails and surfaces coverage delta</td></tr>
+              <tr><td>Testing</td><td>security-audit</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto on security-relevant changes; Manual <code>/security-audit</code></td><td>Deep OWASP-aligned review: injection, auth, data exposure, MCP tool security, privilege escalation paths</td></tr>
+              <tr><td>Testing</td><td>accessibility-check</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto on UI components</td><td>WCAG 2.1 AA compliance check on all React/SPFx UI components</td></tr>
+              <tr><td>Testing</td><td>e2e-test</td><td><span class="tag tag-skill">SKILL</span></td><td>Manual <code>/e2e-test</code></td><td>Orchestrates Playwright E2E test run against staging environment; generates report</td></tr>
+              <tr><td>Testing</td><td>mcp-connector-test</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto for MCP connector changes</td><td>Validates connector: token passthrough, audit log output, allowlist registration, injection detection</td></tr>
+              <tr><td>Testing</td><td>legal-compliance-check</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Manual <code>/legal-compliance</code></td><td>Checks matter data handling, privilege tagging, ethical wall respect, RPC 1.6 considerations</td></tr>
+              <tr><td>Deploy</td><td>pre-deploy-gate</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Auto before every promotion</td><td>Validates: connector allowlist registration, audit logging functional, Key Vault refs valid, staging test pass</td></tr>
+              <tr><td>Deploy</td><td>deploy</td><td><span class="tag tag-skill">SKILL</span></td><td>Manual <code>/deploy</code> only — disable-model-invocation</td><td>Executes deployment to target environment via Azure DevOps pipeline; verifies post-deploy health</td></tr>
+              <tr><td>Deploy</td><td>post-deploy-verify</td><td><span class="tag tag-hook">HOOK</span></td><td>Stop (after deploy task)</td><td>Health check, smoke test, audit log verification; alerts on failure</td></tr>
+              <tr><td>Deploy</td><td>release-notes</td><td><span class="tag tag-skill">SKILL</span></td><td>Manual <code>/release-notes</code></td><td>Generates release notes from commit history and PR descriptions; formats for internal communication</td></tr>
+              <tr><td>Operations</td><td>cve-monitor</td><td><span class="tag tag-subagent">SUBAGENT</span></td><td>Scheduled (weekly via Azure DevOps)</td><td>Scans container images for CVEs; generates remediation plan; critical = immediate alert</td></tr>
+              <tr><td>Operations</td><td>connector-health</td><td><span class="tag tag-hook">HOOK</span></td><td>Scheduled (daily)</td><td>Validates each MCP connector: token refresh, audit logging, allowlist status, latency thresholds</td></tr>
+              <tr><td>Operations</td><td>usage-report</td><td><span class="tag tag-skill">SKILL</span></td><td>Manual <code>/usage-report</code></td><td>Generates monthly Claude API usage report: by persona, by connector, by matter (anonymized), costs</td></tr>
+              <tr><td>Operations</td><td>incident-response</td><td><span class="tag tag-team">AGENT TEAM</span></td><td>Manual <code>/incident $TYPE</code></td><td>Coordinates investigation: triage agent + audit log analyst + remediation agent working in parallel</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S3: Ideation & Design ══ -->
+    <div class="section" id="s3">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">03</span>
+        <span class="section-title">Stage 1 — Ideation &amp; Design</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">3.1</span>
+            <span class="sub-title"><span class="tag tag-skill">SKILL</span> &nbsp;solution-brief — structured intake</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Invoked as <code>/solution-brief</code> at the start of any new application or feature. Claude asks structured questions and generates a brief that auto-populates the project's CLAUDE.md skeleton, ensuring every project begins with the governance-critical fields pre-filled rather than discovered later.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/skills/solution-brief/SKILL.md</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">solution-brief</span>
+<span class="ck">description:</span> <span class="cv">Generate a structured MWS solution brief for a new application or feature</span>
+<span class="ck">disable-model-invocation:</span> <span class="cn">true</span>
+<span class="cm">---</span>
+
+<span class="cs"># MWS Solution Brief Generator</span>
+
+Gather the following from the user through conversation, then produce:
+1. A completed solution brief document
+2. A pre-populated CLAUDE.md skeleton for the new repository
+
+<span class="cs">## Required information to collect</span>
+- Business problem and intended users (attorney, legal ops, developer?)
+- Matter data involved? (yes/no + sensitivity level)
+- Deployment target: SharePoint portal OR Azure Container Apps agentic workload?
+- MCP connectors required (iManage, M365, internal APIs, DevOps?)
+- Estimated user volume and availability requirements
+- Practice group owner and IT Security contact
+
+<span class="cs">## Hosting decision rule (enforce this)</span>
+- Portal/dashboard with no agent background tasks → SharePoint/SPFx
+- Any of: streaming responses, background agents, MCP server hosting,
+  WebSocket connections → Azure Container Apps. Do NOT suggest SharePoint.
+
+<span class="cs">## Output: CLAUDE.md skeleton</span>
+Populate with collected values:
+- repo purpose, MCP servers in scope, iManage workspace IDs if applicable
+- what NOT to modify (matter ID mapping, privilege tagging, ethical wall logic)
+- test requirements, security rules, deploy gating policy</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">3.2</span>
+            <span class="sub-title"><span class="tag tag-subagent">SUBAGENT</span> &nbsp;architecture-review — standards alignment</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Auto-spawned when Claude detects architectural decision language. Runs in an isolated context so the design review doesn't pollute the primary conversation. Checks proposed architecture against the MWS reference architecture and flags deviations before code is written — far cheaper to catch at design time.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/agents/architecture-review.md</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">architecture-review</span>
+<span class="ck">description:</span> <span class="cv">Reviews proposed solution architecture against MWS standards.
+  Activate when architecture, design, or system structure is being discussed.</span>
+<span class="ck">tools:</span> <span class="cv">Read, Grep, WebSearch</span>
+<span class="ck">model:</span> <span class="cv">sonnet</span>
+<span class="cm">---</span>
+
+You are the MWS architecture review specialist. When given a proposed design:
+
+<span class="cs">## Check against MWS reference architecture</span>
+1. Deployment target correct? (portal → SPFx, agentic → Container Apps)
+2. All MCP connectors route through governance gateway?
+3. No direct SQL Server MCP exposure?
+4. User token passthrough pattern for iManage (not service account)?
+5. Credentials in Key Vault, not environment variables?
+6. Azure AD group provisioning, not self-service access?
+
+<span class="cs">## Output</span>
+- PASS / FAIL / NEEDS REVIEW per check
+- Specific remediation for any FAIL
+- Flag any matter data handling that needs Risk Management notification</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">3.3</span>
+            <span class="sub-title"><span class="tag tag-skill">SKILL</span> &nbsp;legal-domain-context — privilege awareness</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Auto-invoked whenever Claude is working on anything involving matters, clients, documents, or legal workflows. Injects standing context about privilege, confidentiality, and ethical walls so Claude's design suggestions are legally-aware by default — not as an afterthought.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/skills/legal-domain-context/SKILL.md</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">legal-domain-context</span>
+<span class="ck">description:</span> <span class="cv">Inject legal domain context when working on matter-related features,
+  client data handling, iManage integration, or legal workflow design.</span>
+<span class="ck">user_invocable:</span> <span class="cn">false</span>
+<span class="cm">---</span>
+
+<span class="cs"># MWS Legal Domain Context</span>
+
+When designing or building features involving legal workflows, always apply:
+
+<span class="cs">## Attorney-client privilege</span>
+- Matter content accessed via MCP is privileged by default
+- No caching matter content outside approved storage (iManage, Azure Blob)
+- Claude output summarizing matter content requires attorney review before external use
+
+<span class="cs">## Ethical walls</span>
+- Never aggregate matter data across ethical wall boundaries
+- User token passthrough is mandatory — inherit iManage ACLs, never bypass
+- Scheduled tasks that access matter data must re-validate access at runtime
+
+<span class="cs">## Data minimisation</span>
+- Request only the document fields needed for the specific operation
+- Do not log matter content in application logs — log metadata (matter ID, doc ID) only
+- RAG indexes over matter content require separate privilege classification per chunk</pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S4: Development ══ -->
+    <div class="section" id="s4">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">04</span>
+        <span class="section-title">Stage 2 — Development</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">4.1</span>
+            <span class="sub-title"><span class="tag tag-hook">HOOK</span> &nbsp;lint-on-write — immediate standards enforcement</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Fires after every file write, unconditionally. Runs the appropriate linter for the file type. Claude sees the output and self-corrects immediately rather than accumulating lint debt across a session. This is placed as a hook rather than a skill because it must run every single time without exception.</p>
+            <div class="code-block-label"><span class="code-block-title">settings.json — PostToolUse hook configuration</span></div>
+            <div class="code-block"><pre>{
+  <span class="ck">"hooks"</span>: {
+    <span class="ck">"PostToolUse"</span>: [
+      {
+        <span class="ck">"matcher"</span>: <span class="cv">"Write|Edit"</span>,
+        <span class="ck">"hooks"</span>: [
+          {
+            <span class="ck">"type"</span>: <span class="cv">"command"</span>,
+            <span class="ck">"command"</span>: <span class="cv">"bash .claude/hooks/lint-on-write.sh $CLAUDE_TOOL_INPUT_PATH"</span>
+          }
+        ]
+      }
+    ]
+  }
+}</pre></div>
+            <div class="code-block-label"><span class="code-block-title">.claude/hooks/lint-on-write.sh</span></div>
+            <div class="code-block"><pre><span class="cm">#!/bin/bash</span>
+FILE=$1
+EXT="${FILE##*.}"
+
+case $EXT in
+  ts|tsx|js|jsx)
+    npx eslint --fix "$FILE" && npx prettier --write "$FILE"
+    ;;
+  py)
+    python -m black "$FILE" && python -m ruff check --fix "$FILE"
+    ;;
+  cs)
+    dotnet format --include "$FILE" 2>/dev/null || true
+    ;;
+  md)
+    <span class="cm"># Run brand voice check hook for markdown content files</span>
+    .claude/hooks/brand-voice-check.sh "$FILE"
+    ;;
+esac</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">4.2</span>
+            <span class="sub-title"><span class="tag tag-hook">HOOK</span> &nbsp;credential-scan — mandatory secret detection</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Runs on every file write alongside the linter. Uses a pattern library tuned for the MWS environment — Anthropic API keys, Azure connection strings, iManage OAuth tokens, SQL Server credentials. Exits non-zero on detection, blocking Claude from proceeding and surfacing the finding immediately.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/hooks/credential-scan.sh</span></div>
+            <div class="code-block"><pre><span class="cm">#!/bin/bash</span>
+FILE=$1
+FINDINGS=""
+
+<span class="cm"># Anthropic API key</span>
+grep -n "sk-ant-" "$FILE" && FINDINGS="anthropic-key"
+
+<span class="cm"># Azure connection strings</span>
+grep -in "DefaultEndpointsProtocol=https" "$FILE" && FINDINGS="$FINDINGS azure-connstring"
+
+<span class="cm"># iManage OAuth tokens (bearer pattern)</span>
+grep -in "Bearer [A-Za-z0-9._-]\{40,\}" "$FILE" && FINDINGS="$FINDINGS imanage-token"
+
+<span class="cm"># SQL Server credentials</span>
+grep -in "Password=[^;]" "$FILE" && FINDINGS="$FINDINGS sql-password"
+
+<span class="cm"># Generic high-entropy strings in likely credential contexts</span>
+grep -inE "(api_key|secret|token|password)\s*[=:]\s*['\"][A-Za-z0-9+/]{20,}" \
+     "$FILE" && FINDINGS="$FINDINGS generic-secret"
+
+if [ -n "$FINDINGS" ]; then
+  echo "CREDENTIAL SCAN FAILED: $FILE"
+  echo "Potential secrets detected: $FINDINGS"
+  echo "All credentials must be stored in Azure Key Vault."
+  echo "Use managed identity or Key Vault references instead."
+  exit 1
+fi</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">4.3</span>
+            <span class="sub-title"><span class="tag tag-hook">HOOK</span> &nbsp;pre-commit-gate — last line before git</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>The final deterministic gate before any commit reaches Azure Repos. Blocks sensitive file extensions, enforces commit message format (required for Azure DevOps work item linking), and re-runs credential scan on the staged diff. This is defence-in-depth — the PostToolUse credential scan should have caught secrets earlier, but this hook is the backstop.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/hooks/pre-commit.sh</span></div>
+            <div class="code-block"><pre><span class="cm">#!/bin/bash</span>
+<span class="cm"># Block sensitive file extensions</span>
+SENSITIVE=$(git diff --cached --name-only | grep -E '\.(env|key|pem|p12|pfx|creds)$|^\.env')
+if [ -n "$SENSITIVE" ]; then
+  echo "BLOCKED: Attempting to commit sensitive files:"
+  echo "$SENSITIVE"
+  exit 1
+fi
+
+<span class="cm"># Enforce commit message format: [TYPE] AB#1234 Description</span>
+<span class="cm"># TYPE: feat|fix|chore|docs|test|refactor|security</span>
+MSG=$(git log --format="%s" -1 HEAD 2>/dev/null || cat .git/COMMIT_EDITMSG 2>/dev/null)
+if ! echo "$MSG" | grep -qE "^\[(feat|fix|chore|docs|test|refactor|security)\] (AB#[0-9]+|NO-TICKET) .+"; then
+  echo "BLOCKED: Commit message format required:"
+  echo "  [TYPE] AB#1234 Description"
+  echo "  [feat] AB#4521 Add iManage search_matter MCP tool"
+  exit 1
+fi
+
+<span class="cm"># Final credential scan on staged diff</span>
+git diff --cached | grep -E "^\+" | grep -iE \
+  "(sk-ant-|DefaultEndpointsProtocol|Bearer [A-Za-z0-9]{40}|Password=[^;])" \
+  && echo "BLOCKED: Credential pattern in staged diff" && exit 1
+
+echo "Pre-commit gate: PASSED"</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">4.4</span>
+            <span class="sub-title"><span class="tag tag-skill">SKILL</span> &nbsp;mws-coding-standards — auto-applied style guide</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Auto-invoked on every coding session. Gives Claude persistent knowledge of MWS-specific standards beyond what generic linters enforce: naming conventions, preferred patterns, error handling requirements, logging standards, and what is explicitly prohibited. This is the primary mechanism for encoding institutional knowledge into every Claude Code session.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/skills/mws-coding-standards/SKILL.md (excerpt)</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">mws-coding-standards</span>
+<span class="ck">description:</span> <span class="cv">Apply MWS coding standards when writing or modifying any code file.</span>
+<span class="ck">user_invocable:</span> <span class="cn">false</span>
+<span class="cm">---</span>
+
+<span class="cs"># MWS Coding Standards</span>
+
+<span class="cs">## TypeScript / Node.js (MCP connectors)</span>
+- All MCP tool implementations must be in separate files under src/tools/
+- Tool names: snake_case (search_matter, get_document, file_document)
+- Every tool must declare input schema with Zod validation
+- Error handling: never throw raw errors — return typed MCP error responses
+- Logging: structured JSON to stdout, never console.log in production code
+- Async patterns: prefer async/await; no unhandled promise rejections
+
+<span class="cs">## .NET (C# — business logic APIs)</span>
+- Controller actions return IActionResult with explicit HTTP status codes
+- All matter-sensitive operations require [MatterAuthorize] attribute
+- Connection strings via IConfiguration — never hardcoded
+- Use CancellationToken in all async controller actions
+- Entity Framework migrations require review before applying to production schema
+
+<span class="cs">## Python (AI pipelines)</span>
+- Type hints required on all function signatures
+- Pydantic models for all data structures passed between pipeline stages
+- Azure Key Vault via DefaultAzureCredential — no manual credential passing
+- All LLM calls wrapped in retry logic with exponential backoff
+- Document chunk metadata must include: matter_id, doc_id, chunk_index, sensitivity_level
+
+<span class="cs">## PROHIBITED in all languages</span>
+- No hardcoded matter IDs, workspace IDs, or user identifiers
+- No console.log / print() in production code paths
+- No direct SQL queries outside the .NET data access layer
+- No synchronous HTTP calls that could block event loops</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">4.5</span>
+            <span class="sub-title"><span class="tag tag-skill">SKILL</span> &nbsp;mcp-connector-scaffold — reference implementation bootstrap</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Invoked manually as <code>/new-connector [name]</code> when starting a new MCP connector. Generates the full project scaffold following the MWS connector pattern: user token passthrough, gateway registration, Key Vault credential retrieval, audit log structure, and a stub for each declared tool. The iManage connector becomes the living reference that all subsequent connectors inherit from.</p>
+            <div class="code-block-label"><span class="code-block-title">Generated directory structure</span></div>
+            <div class="tree">
+              <span class="tree-dir">connectors/[name]-connector/</span>
+              <span class="tree-indent"><span class="tree-file">package.json</span> <span class="tree-comment"># node + @modelcontextprotocol/sdk</span></span>
+              <span class="tree-indent"><span class="tree-file">Dockerfile</span> <span class="tree-comment"># Container Apps deployment image</span></span>
+              <span class="tree-indent"><span class="tree-file">CLAUDE.md</span> <span class="tree-comment"># Connector-specific constraints</span></span>
+              <span class="tree-indent"><span class="tree-dir">src/</span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-file">index.ts</span> <span class="tree-comment"># MCP server entrypoint</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-file">auth.ts</span> <span class="tree-comment"># User token passthrough (Key Vault)</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-file">audit.ts</span> <span class="tree-comment"># Structured audit log emitter</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">tools/</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">[tool-name].ts</span> <span class="tree-comment"># One file per MCP tool</span></span></span></span>
+              <span class="tree-indent"><span class="tree-dir">tests/</span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-file">auth.test.ts</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-file">tools/</span></span></span>
+              <span class="tree-indent"><span class="tree-dir">.claude/</span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-file">skills/ → inherits mws-standard plugin</span></span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">4.6</span>
+            <span class="sub-title"><span class="tag tag-subagent">SUBAGENT</span> &nbsp;pr-review — automated pull request analysis</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Runs automatically on every pull request via Azure DevOps pipeline. Uses an isolated context window to perform a deep review without polluting the developer's session. Posts findings as PR comments. A FAIL finding blocks promotion to staging — the PR cannot merge without Engineering lead resolution.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/agents/pr-review.md</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">pr-review</span>
+<span class="ck">description:</span> <span class="cv">Automated pull request review. Runs on every PR.</span>
+<span class="ck">tools:</span> <span class="cv">Read, Grep, Bash</span>
+<span class="ck">model:</span> <span class="cv">sonnet</span>
+<span class="cm">---</span>
+
+Review this pull request across five dimensions. Produce a structured report
+with PASS / WARN / FAIL per dimension.
+
+<span class="cs">## 1. Security</span>
+- Credentials in code or config? (FAIL if yes)
+- SQL injection vectors in any new queries?
+- MCP tool input validation (Zod schema present)?
+- User token passthrough maintained for iManage operations?
+- No new privileged service account usage?
+
+<span class="cs">## 2. Data handling</span>
+- Matter content handled per legal-domain-context rules?
+- No matter content in application logs?
+- RAG chunks include required metadata fields?
+- Audit logging present on all MCP tool calls?
+
+<span class="cs">## 3. CLAUDE.md compliance</span>
+- No modifications to files listed in "do not modify"?
+- MCP servers used are declared in CLAUDE.md?
+- Test requirements met?
+
+<span class="cs">## 4. Coding standards</span>
+- MWS naming conventions followed?
+- Error handling patterns correct?
+- No prohibited patterns (console.log, hardcoded IDs, direct SQL)?
+
+<span class="cs">## 5. Test coverage</span>
+- New public functions have unit tests?
+- New MCP tools have connector tests?
+- Coverage delta acceptable (>= -2%)?
+
+Output as GitHub-flavoured markdown for posting to the PR.</pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S5: Testing & Validation ══ -->
+    <div class="section" id="s5">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">05</span>
+        <span class="section-title">Stage 3 — Testing &amp; Validation</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="callout warn">
+          <div class="callout-label">PRINCIPLE</div>
+          <div class="callout-body">Testing at MWS has two distinct failure modes: code that doesn't work, and code that works but handles matter data incorrectly. The technical test suite catches the first. The legal compliance check and mcp-connector-test catch the second. Both are required before any application touches production matter data.</div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">5.1</span>
+            <span class="sub-title"><span class="tag tag-hook">HOOK</span> &nbsp;test-runner — continuous test execution</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Runs the relevant test suite automatically after every code write. Scoped to tests related to the changed files — not the full suite on every keystroke. Claude sees test failures immediately and self-corrects within the same task, dramatically reducing the test-fix cycle time.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/hooks/test-runner.sh</span></div>
+            <div class="code-block"><pre><span class="cm">#!/bin/bash</span>
+FILE=$1
+EXT="${FILE##*.}"
+DIR=$(dirname "$FILE")
+
+case $EXT in
+  ts|tsx)
+    <span class="cm"># Run tests related to changed file</span>
+    npx jest --testPathPattern="${FILE%.*}" --passWithNoTests 2>&1 | tail -20
+    ;;
+  py)
+    <span class="cm"># Find and run related pytest tests</span>
+    TESTFILE="${FILE/src\//tests/}"
+    TESTFILE="${TESTFILE/.py/_test.py}"
+    [ -f "$TESTFILE" ] && python -m pytest "$TESTFILE" -v --tb=short 2>&1 | tail -20
+    ;;
+  cs)
+    <span class="cm"># Run dotnet tests in the same project</span>
+    TESTPROJ=$(find . -name "*.Tests.csproj" | head -1)
+    [ -n "$TESTPROJ" ] && dotnet test "$TESTPROJ" --no-build 2>&1 | tail -20
+    ;;
+esac</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">5.2</span>
+            <span class="sub-title"><span class="tag tag-subagent">SUBAGENT</span> &nbsp;security-audit — deep OWASP-aligned review</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Auto-spawned on security-relevant changes (auth code, MCP tool implementations, data access layer). Also available manually as <code>/security-audit</code> before any production deployment. Runs in an isolated context window with read and grep tools only — it analyses code, it does not execute it.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/agents/security-audit.md</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">security-audit</span>
+<span class="ck">description:</span> <span class="cv">Deep security analysis. Auto-activate on auth, MCP tool, or
+  data access layer changes. Also available as /security-audit.</span>
+<span class="ck">tools:</span> <span class="cv">Read, Grep, Bash</span>
+<span class="ck">model:</span> <span class="cv">opus</span>
+<span class="cm">---</span>
+
+You are a senior application security engineer. Analyse the specified
+code for vulnerabilities using OWASP Top 10 as the baseline framework,
+with additional MWS-specific checks.
+
+<span class="cs">## OWASP checks (required)</span>
+A01 Broken Access Control — privilege escalation, missing authorisation
+A02 Cryptographic Failures — weak algorithms, unencrypted matter data
+A03 Injection — SQL injection in .NET layer, prompt injection in MCP tools
+A04 Insecure Design — architectural weaknesses in token handling
+A07 Auth failures — token expiry, refresh logic, session management
+
+<span class="cs">## MWS-specific checks</span>
+- User token passthrough intact (no service account substitution)?
+- MCP tool results inspected before return (prompt injection surface)?
+- Key Vault references only — no inline credentials?
+- Audit log covers all MCP tool invocations?
+- Ethical wall enforcement cannot be bypassed by parameter manipulation?
+- MCP connector allowlist check cannot be circumvented via URL encoding?
+
+<span class="cs">## Output format</span>
+CRITICAL / HIGH / MEDIUM / LOW per finding
+Severity, location (file:line), description, recommended fix
+CRITICAL findings block deployment — require Engineering lead + IT Security sign-off</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">5.3</span>
+            <span class="sub-title"><span class="tag tag-subagent">SUBAGENT</span> &nbsp;mcp-connector-test — connector-specific validation</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Runs automatically when MCP connector code changes. Validates the five properties that are specific to MWS connectors and cannot be adequately tested by a generic test framework. Runs against the staging environment — not production — using sandboxed iManage workspaces and mock M365 tenancy.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/agents/mcp-connector-test.md</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">mcp-connector-test</span>
+<span class="ck">description:</span> <span class="cv">Validate MCP connector compliance. Activate on changes to any
+  file under connectors/ directory.</span>
+<span class="ck">tools:</span> <span class="cv">Read, Bash, mcp-gateway-staging</span>
+<span class="ck">model:</span> <span class="cv">sonnet</span>
+<span class="cm">---</span>
+
+Validate the MCP connector against five required properties:
+
+<span class="cs">## 1. User token passthrough</span>
+Call each tool with a test user token. Verify the token reaching the
+backend system is the same token passed in — not a service account token.
+
+<span class="cs">## 2. Audit log completeness</span>
+Invoke each tool. Verify Sentinel receives a log entry containing:
+timestamp, user Azure AD object ID, connector name, tool name,
+sanitised input params, response status.
+
+<span class="cs">## 3. Allowlist enforcement</span>
+Attempt to invoke the connector from outside the governance gateway.
+Verify the request is blocked (HTTP 403 or connection refused).
+
+<span class="cs">## 4. Credential hygiene</span>
+Inspect container image and environment for hardcoded secrets.
+All credentials must reference Key Vault — not environment variables.
+
+<span class="cs">## 5. Prompt injection surface</span>
+Submit tool call results containing instruction-like content.
+Verify gateway injection detection flags the result before returning to Claude.
+
+Output: PASS/FAIL per property. All five must PASS before production deployment.</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">5.4</span>
+            <span class="sub-title"><span class="tag tag-subagent">SUBAGENT</span> &nbsp;legal-compliance-check — matter data validation</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><span class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"></span><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Invoked manually as <code>/legal-compliance</code> before any application that handles matter data is promoted to production. Reviews data flow diagrams, CLAUDE.md, and code for compliance with the firm's professional responsibility obligations. Produces a report suitable for Risk Management review.</p>
+            <div class="tw">
+              <table>
+                <thead><tr><th>Check</th><th>What it validates</th><th>Failure action</th></tr></thead>
+                <tbody>
+                  <tr><td>Matter data scope</td><td>Application accesses only explicitly declared matter workspaces in CLAUDE.md</td><td>FAIL — update CLAUDE.md and notify Risk Management</td></tr>
+                  <tr><td>Attorney review gate</td><td>Any output path sending content externally has an attorney review checkpoint</td><td>FAIL — architectural change required</td></tr>
+                  <tr><td>Ethical wall bypass</td><td>No code path can circumvent iManage ethical wall via parameter manipulation</td><td>CRITICAL FAIL — immediate escalation to IT Security</td></tr>
+                  <tr><td>Logging minimisation</td><td>Application logs contain matter IDs and doc IDs, not matter content</td><td>FAIL — sanitise logging before production</td></tr>
+                  <tr><td>Data retention</td><td>Matter content not cached beyond session in unapproved storage</td><td>FAIL — remove cache or obtain Privacy team approval</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S6: Deployment ══ -->
+    <div class="section" id="s6">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">06</span>
+        <span class="section-title">Stage 4 — Deployment</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">6.1</span>
+            <span class="sub-title"><span class="tag tag-subagent">SUBAGENT</span> &nbsp;pre-deploy-gate — promotion validation</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Runs automatically before every environment promotion (dev → staging, staging → production). Validates the six conditions that must be true for a safe deployment. Any FAIL blocks promotion — Claude cannot proceed with deployment until failures are resolved.</p>
+            <div class="tw">
+              <table>
+                <thead><tr><th>Check</th><th>Validates</th></tr></thead>
+                <tbody>
+                  <tr><td>Allowlist registration</td><td>Each MCP connector used by this application is registered in the governance gateway allowlist for the target environment</td></tr>
+                  <tr><td>Audit logging functional</td><td>Staging smoke test confirms Sentinel receives audit log entries from each connector</td></tr>
+                  <tr><td>Key Vault references valid</td><td>All Key Vault secret references in container configuration resolve to current, non-expired secrets</td></tr>
+                  <tr><td>Staging test suite passed</td><td>Full test suite passed against staging; no CRITICAL security findings open</td></tr>
+                  <tr><td>CLAUDE.md current</td><td>CLAUDE.md MCP server declarations match actual connector configuration in the target environment</td></tr>
+                  <tr><td>Container image scanned</td><td>No CRITICAL CVEs in any container image being deployed; HIGH CVEs have documented risk acceptance</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">6.2</span>
+            <span class="sub-title"><span class="tag tag-skill">SKILL</span> &nbsp;deploy — gated deployment execution</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>The deploy skill is the only mechanism for production deployment. It is explicitly configured with <code>disable-model-invocation: true</code> — Claude cannot trigger it automatically. Only a developer explicitly typing <code>/deploy [environment]</code> initiates a deployment. The skill validates the pre-deploy gate passed, triggers the Azure DevOps pipeline, monitors progress, and runs post-deploy verification.</p>
+            <div class="callout warn">
+              <div class="callout-label">MANDATORY</div>
+              <div class="callout-body"><code>disable-model-invocation: true</code> on the deploy skill is non-negotiable. An agentic system that can deploy itself to production without explicit human invocation is a security and governance failure. No automated pipeline path should ever invoke <code>/deploy</code> — deployments are always human-initiated.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">6.3</span>
+            <span class="sub-title"><span class="tag tag-hook">HOOK</span> &nbsp;post-deploy-verify — health confirmation</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Fires on the Stop event after a deploy task completes. Runs health checks, a smoke test against the deployed application, and verifies audit logging is live in the production environment. Posts result to the Azure DevOps deployment record and alerts the engineering lead on failure.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/hooks/post-deploy-verify.sh (triggers on Stop after /deploy)</span></div>
+            <div class="code-block"><pre><span class="cm">#!/bin/bash</span>
+TARGET_URL=$1
+ENV=$2
+
+<span class="cm"># Health check</span>
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL/health")
+if [ "$HTTP_STATUS" != "200" ]; then
+  echo "HEALTH CHECK FAILED: $TARGET_URL returned $HTTP_STATUS"
+  <span class="cm"># Post failure to Azure DevOps pipeline</span>
+  az devops build tag add --build-id $BUILD_ID --tags "deploy-health-fail"
+  exit 1
+fi
+
+<span class="cm"># Verify audit logging is live (check Sentinel for recent entries)</span>
+RECENT_LOGS=$(az monitor log-analytics query \
+  --workspace $SENTINEL_WORKSPACE \
+  --analytics-query "MWSMCPAudit | where TimeGenerated > ago(5m) | count" \
+  --output tsv 2>/dev/null)
+
+echo "Post-deploy health: OK | Audit log entries (last 5m): $RECENT_LOGS"
+echo "Deployment to $ENV: VERIFIED"</pre></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S7: Operations ══ -->
+    <div class="section" id="s7">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">07</span>
+        <span class="section-title">Stage 5 — Operations &amp; Monitoring</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">7.1</span>
+            <span class="sub-title"><span class="tag tag-subagent">SUBAGENT</span> &nbsp;cve-monitor — weekly vulnerability scan</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Scheduled weekly via Azure DevOps pipeline. Scans all production container images for new CVEs, cross-references against the NIST NVD and Azure Defender findings, and generates a prioritised remediation plan. Critical findings generate an immediate alert to IT Security and create an Azure DevOps work item with a 72-hour due date.</p>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">7.2</span>
+            <span class="sub-title"><span class="tag tag-team">AGENT TEAM</span> &nbsp;incident-response — coordinated investigation</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>The only Agent Team in the MWS extension library. Invoked manually as <code>/incident [type]</code> where type is one of: <code>matter-access</code>, <code>credential-exposure</code>, <code>connector-anomaly</code>, <code>prompt-injection</code>. Three specialists run in parallel, dramatically accelerating investigation that would otherwise be sequential.</p>
+            <div class="code-block-label"><span class="code-block-title">Agent Team composition for /incident matter-access</span></div>
+            <div class="tw">
+              <table>
+                <thead><tr><th>Agent role</th><th>Runs in parallel</th><th>Output</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>Triage agent</strong></td><td>Queries Sentinel for affected user, time window, matters accessed; assesses scope</td><td>Incident scope summary: users, matters, time range, data accessed</td></tr>
+                  <tr><td><strong>Audit log analyst</strong></td><td>Deep-reads MCP audit logs for the incident window; reconstructs tool call sequence; identifies anomalies</td><td>Full tool call timeline; anomaly flags; comparison to baseline behaviour</td></tr>
+                  <tr><td><strong>Remediation agent</strong></td><td>Drafts incident response steps per Governance Standard Section 7.2; prepares client notification assessment template</td><td>Remediation checklist; Risk Management notification draft; timeline for GC review</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">7.3</span>
+            <span class="sub-title"><span class="tag tag-skill">SKILL</span> &nbsp;usage-report — monthly analytics</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Generates the monthly Claude API usage report for AI Strategy &amp; Technology. Queries the MCP audit logs and Anthropic API usage endpoint; cross-references with Azure Cost Management; produces a formatted report showing usage by persona tier, by connector, by practice group, and API cost breakdown. Matter references are anonymised in the report.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S8: Branding & Coding Standards ══ -->
+    <div class="section" id="s8">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">08</span>
+        <span class="section-title">Branding &amp; Coding Standards — Full Specification</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">8.1</span>
+            <span class="sub-title"><span class="tag tag-skill">SKILL</span> &nbsp;mws-branding — voice, visual, and content standards</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Auto-invoked when Claude writes or edits any user-facing content: UI copy, emails, reports, documentation, Cowork plugin descriptions. Enforces brand voice, prohibits clichéd AI language, and ensures accessibility standards are maintained consistently across all output surfaces.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/skills/mws-branding/SKILL.md (excerpt)</span></div>
+            <div class="code-block"><pre><span class="cm">---</span>
+<span class="ck">name:</span> <span class="cv">mws-branding</span>
+<span class="ck">description:</span> <span class="cv">Apply MWS brand standards when writing or editing user-facing content,
+  UI copy, documentation, reports, or Cowork plugin descriptions.</span>
+<span class="ck">user_invocable:</span> <span class="cn">false</span>
+<span class="cm">---</span>
+
+<span class="cs"># MWS Brand Standards</span>
+
+<span class="cs">## Firm name</span>
+Always use full form on first reference: "McDermott Will & Schulte"
+Short form thereafter: "the firm" or "MWS" (not "McDermott" alone)
+Never: "McDermott Will & Emery" (legacy name — merger completed)
+
+<span class="cs">## Voice</span>
+- Authoritative but accessible — no legalese in UI copy
+- Active voice preferred; passive voice only when agent is unknown
+- Present tense for instructions; past tense for completed actions
+- Second person ("you", "your matter") for attorney-facing interfaces
+
+<span class="cs">## Prohibited phrases (AI-generated clichés)</span>
+Never use: "revolutionary", "game-changing", "cutting-edge", "next-level",
+"unlock", "unleash", "supercharge", "leverage" (as verb), "paradigm shift",
+"seamlessly", "robust solution", "AI-powered" (too generic — be specific)
+
+<span class="cs">## Prohibited in Claude output descriptions</span>
+Never describe Claude as: "thinking", "feeling", "believing", "understanding"
+Use instead: "identifies", "generates", "suggests", "processes", "retrieves"
+
+<span class="cs">## Accessibility</span>
+- All UI copy must work as screen reader text (no icon-only buttons)
+- Error messages must state what went wrong AND what to do next
+- Loading states must describe what is happening ("Retrieving matter documents...")
+- Colour cannot be the sole distinguisher for status (add text/icon)
+
+<span class="cs">## Legal-specific copy rules</span>
+- Never describe Claude output as "advice", "opinion", or "counsel"
+- Always include: "Review by a qualified attorney is required before external use"
+  on any UI surface that displays Claude-generated matter analysis</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">8.2</span>
+            <span class="sub-title"><span class="tag tag-hook">HOOK</span> &nbsp;brand-voice-check — automated enforcement</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Hooks complement the branding skill with deterministic pattern matching. The skill teaches Claude the standards; the hook enforces them as a hard gate on markdown content files. Catches the legacy firm name in particular — a category of error that will otherwise silently persist across documents for years.</p>
+            <div class="code-block-label"><span class="code-block-title">.claude/hooks/brand-voice-check.sh</span></div>
+            <div class="code-block"><pre><span class="cm">#!/bin/bash</span>
+FILE=$1
+VIOLATIONS=""
+
+<span class="cm"># Legacy firm name — most critical catch</span>
+grep -in "McDermott Will.*Emery" "$FILE" \
+  && VIOLATIONS="$VIOLATIONS legacy-firm-name"
+
+<span class="cm"># Prohibited AI clichés in user-facing content</span>
+grep -inE "\b(revolutionary|game.changing|cutting.edge|unleash|supercharge)\b" \
+  "$FILE" && VIOLATIONS="$VIOLATIONS ai-cliche"
+
+<span class="cm"># Anthropomorphic Claude descriptions</span>
+grep -inE "Claude (thinks|feels|believes|understands|knows)" \
+  "$FILE" && VIOLATIONS="$VIOLATIONS anthropomorphic"
+
+<span class="cm"># Missing attorney review disclaimer on analysis content</span>
+if echo "$FILE" | grep -qE "analysis|summary|review|memo"; then
+  grep -qiE "attorney.*review|qualified.*attorney" "$FILE" \
+    || VIOLATIONS="$VIOLATIONS missing-attorney-disclaimer"
+fi
+
+if [ -n "$VIOLATIONS" ]; then
+  echo "BRAND CHECK FAILED: $VIOLATIONS in $FILE"
+  exit 1
+fi</pre></div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">8.3</span>
+            <span class="sub-title">Design token and UI component standards</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>The mws-coding-standards skill includes UI-specific rules for React and SPFx development. Key requirements encoded in the skill:</p>
+            <ul>
+              <li>All colour values reference MWS design tokens, never hardcoded hex values</li>
+              <li>Fluent UI components used for all M365-integrated surfaces (SPFx); MWS custom component library for standalone Azure Static Web App surfaces</li>
+              <li>WCAG 2.1 AA is the minimum accessibility bar — the accessibility-check subagent validates this automatically on UI component changes</li>
+              <li>All loading states use the firm's standard skeleton screen pattern, not spinners</li>
+              <li>Matter-sensitive data displayed in UI must use the <code>MatterDataDisplay</code> component wrapper, which enforces privilege indicators and "attorney eyes only" labels</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S9: Security & Compliance ══ -->
+    <div class="section" id="s9">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">09</span>
+        <span class="section-title">Security &amp; Compliance Automation</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Security is enforced at every layer of the extension stack. The layered defence model below shows which extension type owns each control and why. No single point of failure — if a hook is somehow bypassed, the subagent catches it; if the subagent misses something, the pre-deploy gate is the last line before production.</p>
+
+        <div class="tw">
+          <table>
+            <thead><tr><th>Security control</th><th>Primary enforcement</th><th>Backup enforcement</th><th>In Azure DevOps pipeline</th></tr></thead>
+            <tbody>
+              <tr><td>Secret / credential in code</td><td><span class="tag tag-hook">HOOK</span> credential-scan (PostToolUse)</td><td><span class="tag tag-hook">HOOK</span> pre-commit-gate</td><td>Pipeline secret scan step</td></tr>
+              <tr><td>Lint / code style violations</td><td><span class="tag tag-hook">HOOK</span> lint-on-write (PostToolUse)</td><td><span class="tag tag-subagent">SUBAGENT</span> pr-review</td><td>Pipeline lint step</td></tr>
+              <tr><td>OWASP vulnerability</td><td><span class="tag tag-subagent">SUBAGENT</span> security-audit</td><td><span class="tag tag-subagent">SUBAGENT</span> pr-review (security dimension)</td><td>SAST scan step</td></tr>
+              <tr><td>MCP connector misconfiguration</td><td><span class="tag tag-subagent">SUBAGENT</span> mcp-connector-test</td><td><span class="tag tag-subagent">SUBAGENT</span> pre-deploy-gate</td><td>Pipeline connector validation step</td></tr>
+              <tr><td>Container CVE</td><td><span class="tag tag-subagent">SUBAGENT</span> cve-monitor (weekly)</td><td>Azure Container Registry scanning</td><td>Image scan on build</td></tr>
+              <tr><td>Prompt injection surface</td><td><span class="tag tag-subagent">SUBAGENT</span> mcp-connector-test</td><td>Gateway detection at runtime</td><td>Penetration test (pre-production)</td></tr>
+              <tr><td>Matter data mishandling</td><td><span class="tag tag-subagent">SUBAGENT</span> legal-compliance-check</td><td><span class="tag tag-subagent">SUBAGENT</span> pr-review (data handling dimension)</td><td>Risk Management review gate</td></tr>
+              <tr><td>Ethical wall bypass</td><td><span class="tag tag-subagent">SUBAGENT</span> security-audit (MWS-specific)</td><td>iManage ACL enforcement at runtime</td><td>Connector pentest</td></tr>
+              <tr><td>Unauthorised deployment</td><td><span class="tag tag-skill">SKILL</span> deploy (disable-model-invocation)</td><td>Azure DevOps gated release (lead approval)</td><td>Manual approval gate</td></tr>
+              <tr><td>Accessibility non-compliance</td><td><span class="tag tag-subagent">SUBAGENT</span> accessibility-check</td><td><span class="tag tag-subagent">SUBAGENT</span> pr-review</td><td>Axe-core pipeline scan</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout good">
+          <div class="callout-label">DEFENCE IN DEPTH</div>
+          <div class="callout-body">Every significant security control has at least two enforcement layers: a Claude Code extension (skill, hook, or subagent) that catches issues during development, and an Azure DevOps pipeline step that provides a backstop before any code can reach production. Neither layer alone is sufficient — the combination is what makes the system robust.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S10: Plugin Architecture ══ -->
+    <div class="section" id="s10">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">10</span>
+        <span class="section-title">Plugin Architecture — Packaging for Distribution</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Plugins package the entire MWS extension stack into installable units distributed through the firm's private GitHub plugin source. Three plugin tiers serve different audiences. All plugins are version-controlled, reviewed by Engineering lead and IT Security before marketplace publication, and auto-updated when enterprise-managed.</p>
+
+        <div class="priority-grid">
+          <div class="priority-card p1">
+            <div class="priority-badge">Tier 1 — Core</div>
+            <div class="priority-title">mws-standard-dev</div>
+            <div class="priority-body">Required for all developers and analysts. Bundles: mws-coding-standards, mws-branding, credential-scan hook, lint-on-write hook, pre-commit-gate hook, pr-review subagent, test-gen subagent. Installed enterprise-wide via admin auto-install.</div>
+          </div>
+          <div class="priority-card p1">
+            <div class="priority-badge">Tier 1 — Core</div>
+            <div class="priority-title">mws-imanage-connector</div>
+            <div class="priority-body">Required for any application touching iManage. Bundles: iManage MCP server connection, legal-domain-context skill, mcp-connector-test subagent, legal-compliance-check subagent. Restricted to mwe-claude-developers and mwe-claude-analysts groups.</div>
+          </div>
+          <div class="priority-card p2">
+            <div class="priority-badge">Tier 2 — Specialist</div>
+            <div class="priority-title">mws-security-pack</div>
+            <div class="priority-body">For security-sensitive development and audits. Bundles: security-audit subagent (Opus model), mcp-connector-test subagent, cve-monitor subagent, incident-response agent team. Available to mwe-claude-developers only.</div>
+          </div>
+          <div class="priority-card p2">
+            <div class="priority-badge">Tier 2 — Specialist</div>
+            <div class="priority-title">mws-m365-connector</div>
+            <div class="priority-body">For applications using Teams, SharePoint, or Graph API. Bundles: M365 MCP server connection, connector test subagent, Graph API scope validation skill. Phase 3 delivery — after iManage connector is in production.</div>
+          </div>
+          <div class="priority-card p3">
+            <div class="priority-badge">Tier 3 — Practice</div>
+            <div class="priority-title">mws-[practice]-pack</div>
+            <div class="priority-body">Per practice group packs bundling domain-specific skills. E.g. mws-ma-pack for M&amp;A (MIPA review patterns, deal room conventions), mws-health-pack for health regulatory (FDA terminology, regulatory filing templates). Built by AI Solutions Analysts in Phase 4.</div>
+          </div>
+          <div class="priority-card p3">
+            <div class="priority-badge">Tier 3 — Practice</div>
+            <div class="priority-title">mws-cowork-admin</div>
+            <div class="priority-body">Cowork-specific admin tooling. Bundles: plugin marketplace management skills, usage-report skill, connector health hook, Azure AD group sync validator. For mwe-claude-analysts and admins only.</div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-label">DISTRIBUTION</div>
+          <div class="callout-body">All MWS plugins are hosted in a private GitHub repository configured as the enterprise plugin source in the Anthropic admin panel. The Engineering lead controls publication. Tier 1 plugins are pushed via admin auto-install to all users in their respective Azure AD groups — developers receive them automatically without needing to discover or install them manually.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S11: Repository Structure ══ -->
+    <div class="section" id="s11">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">11</span>
+        <span class="section-title">Repository Structure — Where Everything Lives</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>The extension library lives across three repositories. The separation is intentional: enterprise-wide standards are centrally controlled and distributed; project-specific extensions live with the code they govern.</p>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">11.1</span>
+            <span class="sub-title">mws-claude-plugins — the enterprise extension library</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <div class="tree">
+              <span class="tree-dir">mws-claude-plugins/ </span><span class="tree-comment">(private GitHub repo — enterprise plugin source)</span>
+              <span class="tree-indent"><span class="tree-dir">plugins/</span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">mws-standard-dev/</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">plugin.json</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-dir">skills/</span> <span class="tree-comment"># mws-coding-standards, mws-branding, ...</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-dir">hooks/</span> <span class="tree-comment"># credential-scan, lint-on-write, pre-commit</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-dir">agents/</span> <span class="tree-comment"># pr-review, test-gen, doc-gen</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">mws-imanage-connector/</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">mws-security-pack/</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">mws-m365-connector/</span></span></span>
+              <span class="tree-indent"><span class="tree-dir">docs/</span> <span class="tree-comment"># Plugin authoring guide, contribution template</span></span>
+              <span class="tree-indent"><span class="tree-dir">tests/</span> <span class="tree-comment"># Plugin validation tests (997+ tests target)</span></span>
+              <span class="tree-indent"><span class="tree-file">CHANGELOG.md</span></span>
+              <span class="tree-indent"><span class="tree-file">SECURITY.md</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">11.2</span>
+            <span class="sub-title">Per-project .claude/ directory structure</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>Every application repository contains a <code>.claude/</code> directory alongside its application code. This is checked in, version-controlled, and reviewed like production code. Project-specific extensions live here; enterprise-wide standards are inherited from the installed plugins.</p>
+            <div class="tree">
+              <span class="tree-dir">[application-repo]/</span>
+              <span class="tree-indent"><span class="tree-file">CLAUDE.md</span> <span class="tree-comment"># Project memory — purpose, constraints, MCP servers</span></span>
+              <span class="tree-indent"><span class="tree-dir">.claude/</span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">skills/</span> <span class="tree-comment"># Project-specific skills (app workflows, domain context)</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">solution-brief/SKILL.md</span> <span class="tree-comment"># if intake tool</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">deploy/SKILL.md</span> <span class="tree-comment"># disable-model-invocation: true</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">release-notes/SKILL.md</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">agents/</span> <span class="tree-comment"># Project-specific subagents</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">pre-deploy-gate.md</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">e2e-test.md</span> <span class="tree-comment"># if app has E2E test suite</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">hooks/</span> <span class="tree-comment"># Project-specific hooks (app-level gates)</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">post-deploy-verify.sh</span></span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">settings.json</span> <span class="tree-comment"># Hook event bindings for this project</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-dir">teams/</span> <span class="tree-comment"># Agent team configs (if using teams)</span></span></span>
+              <span class="tree-indent"><span class="tree-indent"><span class="tree-indent"><span class="tree-file">incident-response.json</span> <span class="tree-comment"># if ops-critical app</span></span></span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub">
+          <div class="sub-hdr" onclick="toggleSub(this)">
+            <span class="sub-num">11.3</span>
+            <span class="sub-title">Priority resolution — enterprise vs project vs plugin</span>
+            <svg class="sub-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="sub-body">
+            <p>When skill names conflict across levels, Claude Code resolves in this order: <strong>enterprise &gt; personal &gt; project &gt; plugin</strong>. MWS uses this deliberately: enterprise-level overrides ensure firm standards cannot be quietly overridden by a project-level skill with the same name. Plugin skills use the <code>plugin-name:skill-name</code> namespace to avoid all conflicts.</p>
+            <div class="callout warn">
+              <div class="callout-label">CAUTION</div>
+              <div class="callout-body">Never create a project-level skill named <code>mws-coding-standards</code> or <code>mws-branding</code>. These names are reserved for the enterprise-level versions that override everything. A project-level skill with the same name would be silently superseded and never invoked, giving developers a false sense that their customisation is active.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S12: Build & Rollout Sequence ══ -->
+    <div class="section" id="s12">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">12</span>
+        <span class="section-title">Build &amp; Rollout Sequence</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Don't try to build everything at once. The sequence below layers extensions in dependency order — each tier is usable independently before the next is built. The first six items deliver the most value with the lowest complexity and should be operational by the end of Phase 2.</p>
+
+        <div class="priority-grid" style="grid-template-columns:1fr">
+
+          <div class="priority-card p1" style="margin-bottom:.5rem">
+            <div class="priority-badge">Build first — Phase 1 / 2 (highest ROI)</div>
+            <div class="priority-title">Foundational governance hooks + mws-standard-dev plugin</div>
+            <div class="priority-body">credential-scan, lint-on-write, pre-commit-gate hooks + mws-coding-standards skill + pr-review subagent. These eliminate the most common categories of rework and security issues immediately. Package as mws-standard-dev plugin and push to all developers via admin auto-install. No dependencies on connectors or other infrastructure — buildable on day one.</div>
+          </div>
+
+          <div class="priority-card p1" style="margin-bottom:.5rem">
+            <div class="priority-badge">Build second — Phase 2 (iManage connector milestone)</div>
+            <div class="priority-title">iManage-specific stack + mws-imanage-connector plugin</div>
+            <div class="priority-body">legal-domain-context skill + mcp-connector-scaffold skill + mcp-connector-test subagent + legal-compliance-check subagent. Bundle as mws-imanage-connector plugin. These are required before the iManage MCP connector goes to production — the test and compliance subagents are the go/no-go gate for matter data access.</div>
+          </div>
+
+          <div class="priority-card p2" style="margin-bottom:.5rem">
+            <div class="priority-badge">Build third — Phase 2 / 3 (deployment automation)</div>
+            <div class="priority-title">Deployment and operations stack</div>
+            <div class="priority-body">pre-deploy-gate subagent + deploy skill (disable-model-invocation) + post-deploy-verify hook + solution-brief skill. Once the connector pattern is established and developers are using the standard plugin, these automate the deployment ceremony and ensure every project starts with a complete brief and CLAUDE.md.</div>
+          </div>
+
+          <div class="priority-card p2" style="margin-bottom:.5rem">
+            <div class="priority-badge">Build fourth — Phase 3 (security hardening)</div>
+            <div class="priority-title">Security pack + accessibility + branding hooks</div>
+            <div class="priority-body">security-audit subagent (Opus) + accessibility-check subagent + mws-branding skill + brand-voice-check hook. Package as mws-security-pack. By Phase 3 you have multiple connectors and applications in production — the security audit subagent needs to be running on all of them before practice group rollout at scale.</div>
+          </div>
+
+          <div class="priority-card p3">
+            <div class="priority-badge">Build fifth — Phase 4 (full automation + practice packs)</div>
+            <div class="priority-title">Agent teams + practice packs + operations skills</div>
+            <div class="priority-body">incident-response agent team + cve-monitor subagent + usage-report skill + mws-[practice]-pack plugins (M&amp;A, Health Regulatory, etc.). These are the most sophisticated extensions — Agent Teams in particular require solid foundational skills and hooks to be reliable. Build on a stable base.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const stageData = [
+  {
+    name: "Stage 1 — Ideation & Design",
+    color: "#4a148c",
+    items: [
+      { type: "skill", name: "solution-brief", desc: "Structured intake; auto-populates CLAUDE.md skeleton", mode: "Manual: /solution-brief" },
+      { type: "subagent", name: "architecture-review", desc: "Validates design against MWS reference architecture; flags deviations before code is written", mode: "Auto: on design/architecture discussion" },
+      { type: "skill", name: "legal-domain-context", desc: "Injects privilege, confidentiality, ethical wall context into all design decisions", mode: "Auto: on legal/matter domain work" },
+    ]
+  },
+  {
+    name: "Stage 2 — Development",
+    color: "#1565c0",
+    items: [
+      { type: "hook", name: "lint-on-write", desc: "ESLint/Prettier (TS), Black/Ruff (Python), dotnet format (.NET) after every file write", mode: "Hook: PostToolUse:Write — always fires" },
+      { type: "hook", name: "credential-scan", desc: "Scans every written file for secrets, API keys, tokens, connection strings", mode: "Hook: PostToolUse:Write — always fires" },
+      { type: "hook", name: "pre-commit-gate", desc: "Blocks sensitive files, enforces commit message format, re-runs credential scan on diff", mode: "Hook: PreCommit — always fires" },
+      { type: "skill", name: "mws-coding-standards", desc: "Naming, error handling, logging, prohibited patterns across TS/.NET/Python", mode: "Auto: on every coding session" },
+      { type: "skill", name: "mws-branding", desc: "Brand voice, prohibited phrases, firm name, accessibility, legal disclaimers", mode: "Auto: on user-facing content" },
+      { type: "skill", name: "mcp-connector-scaffold", desc: "Generates full connector project scaffold following MWS architecture pattern", mode: "Manual: /new-connector [name]" },
+      { type: "subagent", name: "pr-review", desc: "5-dimension PR review: security, data handling, CLAUDE.md, standards, test coverage", mode: "Auto: on every PR via pipeline" },
+      { type: "subagent", name: "test-gen", desc: "Generates unit tests for new functions and MCP tool implementations", mode: "Auto: after new function/tool creation" },
+      { type: "subagent", name: "doc-gen", desc: "JSDoc/XML doc comments for public APIs and MCP tool definitions", mode: "Auto: on public interface changes" },
+    ]
+  },
+  {
+    name: "Stage 3 — Testing & Validation",
+    color: "#00695c",
+    items: [
+      { type: "hook", name: "test-runner", desc: "Runs relevant test suite after every code write; surfaces coverage delta", mode: "Hook: PostToolUse:Write — always fires" },
+      { type: "subagent", name: "security-audit", desc: "OWASP Top 10 + MWS-specific: token passthrough, injection surface, ethical wall bypass", mode: "Auto: on security-relevant changes; Manual: /security-audit" },
+      { type: "subagent", name: "accessibility-check", desc: "WCAG 2.1 AA compliance on all React/SPFx UI components", mode: "Auto: on UI component changes" },
+      { type: "skill", name: "e2e-test", desc: "Playwright E2E test orchestration against staging environment", mode: "Manual: /e2e-test" },
+      { type: "subagent", name: "mcp-connector-test", desc: "5-property connector validation: token passthrough, audit log, allowlist, credentials, injection", mode: "Auto: on connector code changes" },
+      { type: "subagent", name: "legal-compliance-check", desc: "Matter data handling, privilege tagging, ethical wall, logging minimisation, data retention", mode: "Manual: /legal-compliance (required pre-production)" },
+    ]
+  },
+  {
+    name: "Stage 4 — Deployment",
+    color: "#bf360c",
+    items: [
+      { type: "subagent", name: "pre-deploy-gate", desc: "Validates: allowlist registration, audit logging, Key Vault refs, staging tests, CLAUDE.md, CVE status", mode: "Auto: before every environment promotion" },
+      { type: "skill", name: "deploy", desc: "Triggers Azure DevOps pipeline; monitors; runs post-deploy verification", mode: "Manual ONLY: /deploy [env] — disable-model-invocation: true" },
+      { type: "hook", name: "post-deploy-verify", desc: "Health check, smoke test, audit log verification; alerts Engineering lead on failure", mode: "Hook: Stop (after deploy task)" },
+      { type: "skill", name: "release-notes", desc: "Generates release notes from commit history and PR descriptions", mode: "Manual: /release-notes" },
+    ]
+  },
+  {
+    name: "Stage 5 — Operations",
+    color: "#4e342e",
+    items: [
+      { type: "subagent", name: "cve-monitor", desc: "Scans container images; prioritised remediation plan; critical CVEs → immediate alert + DevOps work item", mode: "Scheduled: weekly via Azure DevOps pipeline" },
+      { type: "hook", name: "connector-health", desc: "Validates each connector: token refresh, audit logging, allowlist, latency thresholds", mode: "Scheduled: daily" },
+      { type: "skill", name: "usage-report", desc: "Monthly Claude API usage by persona, connector, practice group (matters anonymised), costs", mode: "Manual: /usage-report" },
+      { type: "team", name: "incident-response", desc: "Parallel: triage agent + audit log analyst + remediation agent. Covers: matter access, credential exposure, connector anomaly, prompt injection", mode: "Manual: /incident [type]" },
+    ]
+  }
+];
+
+const typeColors = {
+  skill: { bg: '#eeedfe', bd: '#534ab7', tx: '#3c3489', label: 'SKILL' },
+  hook: { bg: '#faeeda', bd: '#854f0b', tx: '#633806', label: 'HOOK' },
+  subagent: { bg: '#e1f5ee', bd: '#0f6e56', tx: '#085041', label: 'SUBAGENT' },
+  team: { bg: '#e6f1fb', bd: '#185fa5', tx: '#0c447c', label: 'AGENT TEAM' },
+  plugin: { bg: '#faece7', bd: '#993c1d', tx: '#712b13', label: 'PLUGIN' },
+  mcp: { bg: '#f1efea', bd: '#5f5e5a', tx: '#2c2c2a', label: 'MCP' },
+};
+
+function showStage(idx) {
+  document.querySelectorAll('.lc-stage').forEach((s,i) => s.classList.toggle('active', i===idx));
+  const stage = stageData[idx];
+  const panel = document.getElementById('stage-panel');
+  const tagHtml = t => {
+    const c = typeColors[t];
+    return `<span style="display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:3px;font-size:.68rem;font-weight:700;letter-spacing:.04em;background:${c.bg};color:${c.tx};border:1px solid ${c.bd}">${c.label}</span>`;
+  };
+  panel.innerHTML = `
+    <div class="stage-panel-title">
+      <span style="width:10px;height:10px;border-radius:50%;background:${stage.color};display:inline-block"></span>
+      ${stage.name}
+    </div>
+    <div class="stage-panel-grid">
+      ${stage.items.map(item => `
+        <div class="stage-item">
+          <div class="stage-item-type">${tagHtml(item.type)}</div>
+          <div class="stage-item-name">${item.name}</div>
+          <div class="stage-item-desc">${item.desc}</div>
+          <div class="stage-item-mode">${item.mode}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function toggleSection(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('collapsed');
+  updateNav();
+}
+
+function toggleSub(header) {
+  header.classList.toggle('collapsed');
+  header.nextElementSibling.classList.toggle('collapsed');
+}
+
+function navScrollTo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.classList.contains('section')) {
+    const h = el.querySelector('.section-header');
+    const b = el.querySelector('.section-body');
+    if (h && b && b.classList.contains('collapsed')) {
+      h.classList.remove('collapsed');
+      b.classList.remove('collapsed');
+    }
+  }
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateNav() {
+  const sections = document.querySelectorAll('.section');
+  const links = document.querySelectorAll('.nav-link');
+  const scrollY = window.scrollY + 120;
+  let activeId = 'hero';
+  sections.forEach(s => { if (s.offsetTop <= scrollY) activeId = s.id; });
+  links.forEach(l => {
+    l.classList.remove('active');
+    const t = l.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    if (t === activeId || (activeId === 'hero' && t === 'hero')) l.classList.add('active');
+  });
+}
+
+window.addEventListener('scroll', updateNav);
+document.querySelectorAll('.section-body').forEach(b => b.classList.remove('collapsed'));
+document.querySelectorAll('.section-header').forEach(h => h.classList.remove('collapsed'));
+document.querySelectorAll('.sub-body').forEach(b => b.classList.remove('collapsed'));
+document.querySelectorAll('.sub-hdr').forEach(h => h.classList.remove('collapsed'));
+</script>
+</body>
+</html>

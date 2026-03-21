@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWS Claude AI Platform — Technical Architecture v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #1a2744;
+  --navy-mid:  #243560;
+  --blue:      #2e5fa5;
+  --blue-lt:   #4a7cc9;
+  --accent:    #c8a04a;
+  --accent-lt: #e8c87a;
+  --bg:        #f4f2ee;
+  --bg-card:   #fdfcfa;
+  --text:      #1c1c1e;
+  --text-mid:  #3d3d40;
+  --text-mute: #6b6b70;
+  --border:    #dbd8d0;
+  --teal:      #0f6e56;
+  --teal-lt:   #e1f5ee;
+  --coral:     #993c1d;
+  --coral-lt:  #faece7;
+  --purple:    #534ab7;
+  --purple-lt: #eeedfe;
+  --amber:     #854f0b;
+  --amber-lt:  #faeeda;
+  --green:     #375623;
+  --green-lt:  #e2efda;
+  --red-lt:    #fff0f0;
+  --red:       #c0392b;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ── Navigation ── */
+#nav {
+  position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+  background: var(--navy);
+  overflow-y: auto; z-index: 100;
+  display: flex; flex-direction: column;
+  padding: 0 0 2rem;
+}
+#nav-header {
+  padding: 1.5rem 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 0.5rem;
+}
+#nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem; font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  margin-bottom: 0.25rem;
+}
+#nav-sub {
+  font-size: 0.7rem; color: rgba(255,255,255,0.45);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.nav-section { padding: 0.35rem 0; }
+.nav-section-label {
+  font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.3); padding: 0.6rem 1.25rem 0.2rem;
+  font-weight: 600;
+}
+.nav-link {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.42rem 1.25rem;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none; font-size: 0.8rem; font-weight: 400;
+  transition: all 0.15s; border-left: 2px solid transparent;
+  cursor: pointer;
+}
+.nav-link:hover { color: white; background: rgba(255,255,255,0.06); }
+.nav-link.active { color: var(--accent-lt); border-left-color: var(--accent); background: rgba(200,160,74,0.1); }
+.nav-link .num { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; opacity: 0.5; min-width: 1.6rem; }
+
+/* ── Main content ── */
+#main { margin-left: 260px; min-height: 100vh; }
+
+/* ── Hero ── */
+#hero {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 50%, #1a3a6e 100%);
+  padding: 5rem 4rem 4rem;
+  position: relative; overflow: hidden;
+}
+#hero::before {
+  content: '';
+  position: absolute; top: -40%; right: -10%; width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,160,74,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+#hero::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.hero-eyebrow {
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin-bottom: 1rem;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem; font-weight: 700; color: white;
+  line-height: 1.15; margin-bottom: 0.5rem;
+}
+.hero-subtitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem; color: rgba(255,255,255,0.6);
+  font-weight: 400; margin-bottom: 2.5rem;
+}
+.hero-meta {
+  display: flex; gap: 2rem; flex-wrap: wrap;
+}
+.hero-meta-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.hero-meta-label { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.35); font-weight: 600; }
+.hero-meta-value { font-size: 0.82rem; color: rgba(255,255,255,0.8); font-weight: 400; }
+
+/* ── Content wrapper ── */
+.content { max-width: 860px; margin: 0 auto; padding: 3rem 4rem 6rem; }
+
+/* ── Section ── */
+.section { margin-bottom: 0.5rem; }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 1.5rem;
+  background: var(--navy); color: white;
+  cursor: pointer; user-select: none;
+  border-radius: 6px 6px 0 0;
+  transition: background 0.15s;
+  margin-top: 2.5rem;
+}
+.section-header:hover { background: var(--navy-mid); }
+.section-header.collapsed { border-radius: 6px; }
+.section-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem; color: var(--accent);
+  margin-right: 0.75rem; font-weight: 500;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem; font-weight: 600; flex: 1;
+}
+.section-chevron {
+  width: 20px; height: 20px; transition: transform 0.25s;
+  opacity: 0.6;
+}
+.section-header.collapsed .section-chevron { transform: rotate(-90deg); }
+
+.section-body {
+  background: var(--bg-card);
+  border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 2rem 2.5rem 2.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.section-body.collapsed { display: none; }
+
+/* ── Subsections ── */
+.subsection { margin-top: 2rem; }
+.subsection-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.85rem; cursor: pointer; user-select: none;
+}
+.subsection-header:hover .subsection-title { color: var(--blue); }
+.subsection-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem; color: var(--blue); font-weight: 500;
+}
+.subsection-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem; font-weight: 600; color: var(--navy);
+  transition: color 0.15s; flex: 1;
+}
+.sub-chevron { width: 14px; height: 14px; transition: transform 0.2s; opacity: 0.4; }
+.subsection-header.collapsed .sub-chevron { transform: rotate(-90deg); }
+.subsection-body.collapsed { display: none; }
+
+/* ── H3 ── */
+.h3 {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.85rem; font-weight: 600; color: var(--text-mid);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin: 1.5rem 0 0.6rem;
+}
+
+/* ── Prose ── */
+p { margin-bottom: 0.9rem; color: var(--text-mid); font-size: 0.92rem; }
+p strong { color: var(--text); font-weight: 600; }
+
+/* ── Lists ── */
+ul, ol { padding-left: 1.4rem; margin-bottom: 0.9rem; }
+li { margin-bottom: 0.35rem; color: var(--text-mid); font-size: 0.92rem; line-height: 1.6; }
+li strong { color: var(--text); }
+
+/* ── Callout ── */
+.callout {
+  display: flex; gap: 0; margin: 1.25rem 0; border-radius: 6px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.callout-label {
+  padding: 1rem 1rem;
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  min-width: 80px; text-align: center;
+  display: flex; align-items: center; justify-content: center;
+}
+.callout-body { padding: 0.85rem 1.1rem; font-size: 0.88rem; color: var(--text-mid); line-height: 1.65; flex: 1; }
+.callout.info .callout-label { background: var(--blue); color: white; }
+.callout.info .callout-body { background: #eef4fd; }
+.callout.warn .callout-label { background: var(--amber); color: white; }
+.callout.warn .callout-body { background: var(--amber-lt); }
+.callout.key .callout-label { background: var(--navy); color: var(--accent); }
+.callout.key .callout-body { background: #f0effa; }
+.callout.success .callout-label { background: var(--teal); color: white; }
+.callout.success .callout-body { background: var(--teal-lt); }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; margin: 1.2rem 0; border-radius: 6px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+thead tr { background: var(--navy); }
+thead th { padding: 0.75rem 1rem; text-align: left; color: white; font-weight: 600; font-size: 0.78rem; letter-spacing: 0.04em; }
+tbody tr:nth-child(even) { background: #f8f7f4; }
+tbody tr:nth-child(odd) { background: var(--bg-card); }
+tbody tr:hover { background: #eff3fb; }
+td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text-mid); line-height: 1.55; }
+td:first-child { font-weight: 500; color: var(--text); }
+.badge {
+  display: inline-block; padding: 0.2rem 0.55rem; border-radius: 3px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em;
+}
+.badge-green  { background: var(--green-lt); color: var(--green); }
+.badge-amber  { background: var(--amber-lt); color: var(--amber); }
+.badge-gray   { background: #eee; color: #555; }
+.badge-blue   { background: var(--purple-lt); color: var(--purple); }
+
+/* ── Diagrams ── */
+.diagram-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; margin: 1.5rem 0;
+}
+.diagram-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: #f0eee8; border-bottom: 1px solid var(--border);
+}
+.diagram-title { font-size: 0.78rem; font-weight: 600; color: var(--navy); letter-spacing: 0.03em; }
+.diagram-caption { font-size: 0.7rem; color: var(--text-mute); }
+.diagram-body { padding: 1.5rem; overflow-x: auto; }
+
+/* ── SVG diagrams ── */
+.diag-svg { width: 100%; font-family: 'IBM Plex Sans', sans-serif; }
+.node-box { cursor: pointer; transition: opacity 0.15s; }
+.node-box:hover { opacity: 0.85; }
+
+/* ── Phase timeline ── */
+.timeline { display: flex; flex-direction: column; gap: 0; margin: 1.2rem 0; }
+.phase {
+  display: grid; grid-template-columns: 120px 1fr;
+  border: 1px solid var(--border); margin-top: -1px;
+  background: var(--bg-card); overflow: hidden;
+}
+.phase:first-child { border-radius: 6px 6px 0 0; }
+.phase:last-child { border-radius: 0 0 6px 6px; }
+.phase-label {
+  padding: 1rem 1.1rem;
+  background: var(--navy); color: white;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.phase-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--accent); letter-spacing: 0.08em; margin-bottom: 0.2rem; }
+.phase-time { font-size: 0.78rem; font-weight: 600; }
+.phase-body { padding: 1rem 1.25rem; }
+.phase-items { display: flex; flex-direction: column; gap: 0.2rem; }
+.phase-item { font-size: 0.82rem; color: var(--text-mid); padding-left: 1rem; position: relative; }
+.phase-item::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+.phase-deps { font-size: 0.72rem; color: var(--text-mute); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+
+/* ── Persona grid ── */
+.persona-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 1.2rem 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.persona-col { border-right: 1px solid var(--border); }
+.persona-col:last-child { border-right: none; }
+.persona-head { background: var(--navy); padding: 0.85rem 0.9rem; }
+.persona-role { font-size: 0.78rem; font-weight: 600; color: white; margin-bottom: 0.1rem; }
+.persona-desc { font-size: 0.65rem; color: rgba(255,255,255,0.45); }
+.persona-row { padding: 0.7rem 0.9rem; border-top: 1px solid var(--border); }
+.persona-row-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-mute); margin-bottom: 0.25rem; }
+.persona-row-value { font-size: 0.78rem; color: var(--text-mid); line-height: 1.45; }
+.persona-surface { background: #eef1fb; }
+.persona-does { background: #f8f7f4; }
+.persona-plan { background: var(--teal-lt); }
+.persona-ad { background: #f0f8f4; font-family: 'IBM Plex Mono', monospace; }
+
+/* ── Accordion sub-items ── */
+.tech-item {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 0.5rem;
+}
+.tech-item-header {
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1rem;
+  cursor: pointer; background: var(--bg-card); user-select: none;
+  transition: background 0.15s;
+}
+.tech-item-header:hover { background: #f0eee8; }
+.tech-item-name { font-weight: 600; font-size: 0.9rem; flex: 1; }
+.tech-item-body { padding: 0.9rem 1.1rem 1rem; border-top: 1px solid var(--border); background: #fafaf8; font-size: 0.88rem; color: var(--text-mid); }
+.tech-item-body.collapsed { display: none; }
+
+/* ── Two-col layout ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.two-col-wide { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin: 1rem 0; }
+.info-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.1rem; }
+.info-card-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-mute); margin-bottom: 0.35rem; }
+.info-card-value { font-size: 0.88rem; color: var(--text); line-height: 1.5; }
+
+/* ── TOC ── */
+#toc-panel {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.5rem 1.75rem; margin-bottom: 2.5rem;
+}
+#toc-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; color: var(--navy); margin-bottom: 1rem; }
+.toc-list { display: flex; flex-direction: column; gap: 0.15rem; }
+.toc-item { display: flex; gap: 0.5rem; align-items: baseline; }
+.toc-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--blue); min-width: 2rem; }
+.toc-link { font-size: 0.85rem; color: var(--blue); text-decoration: none; transition: color 0.15s; }
+.toc-link:hover { color: var(--navy); text-decoration: underline; }
+.toc-dots { flex: 1; border-bottom: 1px dotted var(--border); margin-bottom: 3px; }
+
+/* ── Print ── */
+@media print {
+  #nav { display: none; }
+  #main { margin-left: 0; }
+  .section-body.collapsed { display: block !important; }
+}
+
+/* ── Scrollbar ── */
+#nav::-webkit-scrollbar { width: 4px; }
+#nav::-webkit-scrollbar-track { background: transparent; }
+#nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav id="nav">
+  <div id="nav-header">
+    <div id="nav-logo">McDermott<br>Will &amp; Schulte</div>
+    <div id="nav-sub">Claude AI Platform</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Document</div>
+    <a class="nav-link active" onclick="navScrollTo('hero')"><span class="num">—</span>Overview</a>
+    <a class="nav-link" onclick="navScrollTo('s1')"><span class="num">1</span>Executive Summary</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Architecture</div>
+    <a class="nav-link" onclick="navScrollTo('s2')"><span class="num">2</span>Stack Assessment</a>
+    <a class="nav-link" onclick="navScrollTo('s3')"><span class="num">3</span>Target Architecture</a>
+    <a class="nav-link" onclick="navScrollTo('s4')"><span class="num">4</span>Delivery Pipeline</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Planning</div>
+    <a class="nav-link" onclick="navScrollTo('s5')"><span class="num">5</span>Implementation Timing</a>
+    <a class="nav-link" onclick="navScrollTo('s6')"><span class="num">6</span>Technology Rationale</a>
+    <a class="nav-link" onclick="navScrollTo('s7')"><span class="num">7</span>Security Architecture</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Reference</div>
+    <a class="nav-link" onclick="navScrollTo('sa')"><span class="num">A</span>Glossary</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<div id="main">
+
+  <!-- Hero -->
+  <div id="hero">
+    <div class="hero-eyebrow">Technical Architecture &amp; Recommendations — v1.0 · March 2026</div>
+    <div class="hero-title">Claude AI Platform</div>
+    <div class="hero-subtitle">Technical Architecture and Recommendations</div>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Status</span>
+        <span class="hero-meta-value">Draft — Engineering &amp; IT Security review</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Owner</span>
+        <span class="hero-meta-value">AI Strategy &amp; Technology</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Companion</span>
+        <span class="hero-meta-value">Governance Standard v0.9</span>
+      </div>
+      <div class="hero-meta-item">
+        <span class="hero-meta-label">Applies to</span>
+        <span class="hero-meta-value">Cowork · Code · API · MCP Connectors</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- TOC -->
+    <div id="toc-panel">
+      <div id="toc-title">Contents</div>
+      <div class="toc-list">
+        <div class="toc-item"><span class="toc-num">1</span><a class="toc-link" onclick="navScrollTo('s1')">Executive Summary</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">2</span><a class="toc-link" onclick="navScrollTo('s2')">Current Stack Assessment</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">3</span><a class="toc-link" onclick="navScrollTo('s3')">Target Architecture</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">4</span><a class="toc-link" onclick="navScrollTo('s4')">Delivery Pipeline</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">5</span><a class="toc-link" onclick="navScrollTo('s5')">Implementation Timing</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">6</span><a class="toc-link" onclick="navScrollTo('s6')">Technology Rationale</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">7</span><a class="toc-link" onclick="navScrollTo('s7')">Security Architecture</a><span class="toc-dots"></span></div>
+        <div class="toc-item"><span class="toc-num">A</span><a class="toc-link" onclick="navScrollTo('sa')">Glossary</a><span class="toc-dots"></span></div>
+      </div>
+    </div>
+
+    <!-- ══ S1: Executive Summary ══ -->
+    <div class="section" id="s1">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">01</span>
+        <span class="section-title">Executive Summary</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p><strong>Situation.</strong> McDermott Will &amp; Schulte is deploying the Anthropic Claude AI platform — comprising Claude Cowork for knowledge workers and Claude Code for engineering and AI analyst teams — as the foundation for an AI-augmented delivery model. The firm currently operates an all-Microsoft Azure stack with React/TypeScript, .NET, SQL Server, and SharePoint Online. This document defines how to extend that stack to support agentic AI workflows, secure MCP integrations, and an automated delivery pipeline.</p>
+        <p><strong>Core recommendation.</strong> The existing stack is well-suited to Claude AI development and requires targeted additions rather than wholesale change. The three highest-priority additions are: Python (for AI pipeline work), Node.js/TypeScript MCP servers (for custom connector development), and Azure Container Apps (for isolated, scalable MCP hosting). Everything else builds on infrastructure the firm already owns and operates.</p>
+        <p><strong>Architecture in one sentence.</strong> Users interact with Claude through role-appropriate surfaces (Cowork for attorneys, Claude Code for developers); all MCP connector traffic routes through a governed gateway on Azure Container Apps that enforces allowlists, manages credentials from Azure Key Vault, and logs all tool calls to Microsoft Sentinel; and every Claude-integrated application is built and deployed through a Claude Code-augmented Azure DevOps pipeline.</p>
+        <p><strong>Implementation approach.</strong> Four phases over 12 months, beginning with identity and governance foundations and the iManage Cloud MCP connector as the reference implementation, expanding to all practice groups and a full skills library by month 12.</p>
+
+        <div class="callout key">
+          <div class="callout-label">KEY PRINCIPLE</div>
+          <div class="callout-body">Nothing in this architecture creates new privileged access paths. The iManage connector passes the user's own OAuth token — Claude can only see what that attorney already has access to in iManage. The MCP gateway enforces this and logs every access. This is the existing access control model extended to an AI client.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S2: Stack Assessment ══ -->
+    <div class="section" id="s2">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">02</span>
+        <span class="section-title">Current Stack Assessment</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>The table below assesses each current technology against its suitability for Claude AI development, MCP connector work, and agentic workflows. The overall finding is positive — the firm's Azure-centric, TypeScript-led stack aligns well with Anthropic's tooling. The gaps are specific and addressable. Click any row to expand its full rationale.</p>
+
+        <!-- Expandable tech items -->
+        <div style="margin: 1.5rem 0;">
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-green">Existing</span>
+              <span class="tech-item-name">React + TypeScript</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">Front-end</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> Native strength for Claude Code. MCP clients are written in TypeScript. The existing SPFx and standalone React experience transfers directly to Claude-integrated front-ends.</p>
+              <p><strong>Recommendation:</strong> Keep and extend. TypeScript is also the primary language for custom MCP connector development (alongside Node.js runtime), so this investment compounds.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-green">Existing</span>
+              <span class="tech-item-name">.NET (C#)</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">Middle tier / APIs</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> Well supported by Claude Code. An official Anthropic .NET SDK exists. Claude Code generates idiomatic C# accurately and understands Entity Framework, LINQ, and Azure SDK patterns.</p>
+              <p><strong>Recommendation:</strong> Keep and extend. The .NET API layer becomes the MCP adapter for internal SQL Server data — exposing business logic as MCP tools without ever opening SQL Server to direct connector access.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-green">Existing</span>
+              <span class="tech-item-name">SQL Server</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">Relational backend</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> Claude Code generates accurate T-SQL. No native MCP connector exists for SQL Server, which is the correct situation — direct database MCP connectors are a security anti-pattern for production systems.</p>
+              <p><strong>Recommendation:</strong> Keep, but never expose directly via MCP. All SQL Server access from Claude routes through the .NET API layer, which enforces business rules and access controls before any query reaches the database.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-amber">Extend with caveats</span>
+              <span class="tech-item-name">SharePoint Online / SPFx</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">Hosting</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> SharePoint Online is excellent for portal-style front-ends and will continue to be. However it imposes fundamental constraints that make it unsuitable for agentic AI workloads: no persistent server-side processes, no WebSocket support for streaming responses, sandboxed execution preventing direct iManage API calls, and no MCP server hosting capability.</p>
+              <p><strong>Recommendation:</strong> Keep for portals — dashboards, document viewers, search interfaces. Move all server-side AI logic, MCP servers, and background agents to Azure Container Apps. SharePoint becomes the front-end surface; Azure is the back-end. This is an evolution of the existing pattern, not a replacement.</p>
+              <div class="callout warn" style="margin-top:0.75rem">
+                <div class="callout-label">CAUTION</div>
+                <div class="callout-body">Resist the instinct to default to SharePoint for every new application. Establish a clear decision rule by end of Phase 1: if the application needs Claude to do background work, stream responses, or maintain server-side state, it goes to Azure Container Apps — not SharePoint.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-green">Existing</span>
+              <span class="tech-item-name">Azure (platform)</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">Infrastructure</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> Excellent alignment. The Anthropic API works natively from Azure compute with no special configuration. Azure AD, Key Vault, Sentinel, Container Apps, and AI Search all integrate cleanly into the Claude platform architecture without requiring third-party tooling.</p>
+              <p><strong>Recommendation:</strong> Strong foundation — expand with Container Apps for MCP hosting and Azure AI Search for RAG. The existing Azure investment compounds rather than being displaced.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-amber">Add now</span>
+              <span class="tech-item-name">Node.js / TypeScript</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">MCP servers</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> The fastest path to custom MCP connectors. Anthropic's MCP SDK has a TypeScript-first implementation. Claude Code itself runs on Node. The team already knows TypeScript — this is an extension of existing skills, not a new language.</p>
+              <p><strong>Recommendation:</strong> Primary language for all MCP connector development. The iManage, M365, and Azure DevOps connectors should all be Node.js/TypeScript.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-amber">Add now</span>
+              <span class="tech-item-name">Python</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">AI pipelines</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> The highest-priority addition to the stack, even for a .NET shop. Anthropic's Python SDK is more mature and heavily documented than the .NET SDK. The broader AI/ML ecosystem — sentence-transformers, PyMuPDF, LangChain, LlamaIndex — exists almost exclusively in Python.</p>
+              <p><strong>Recommendation:</strong> Required for AI pipeline work — document chunking, embedding generation, RAG orchestration. At least one Python-proficient developer must be in place by the start of Phase 2. Claude Code generates high-quality Python, lowering the bar, but does not eliminate the need for foundational Python knowledge.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-amber">Add now</span>
+              <span class="tech-item-name">Azure Container Apps</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">MCP server hosting</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> Preferred over App Service for MCP connector hosting. Each connector in its own container means isolated managed identity, isolated Key Vault access, and isolated scale policy. Scale-to-zero keeps idle connectors cost-free.</p>
+              <p><strong>Recommendation:</strong> Host all MCP connectors and the governance gateway on Container Apps. Use Docker for dev/prod environment parity across the mixed Mac/Windows team.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-blue">Add in 6 months</span>
+              <span class="tech-item-name">Azure AI Search</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">Vector + keyword search / RAG</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> Necessary for any use case where Claude answers questions over a document corpus rather than retrieving specific known files. Hybrid semantic + keyword search is significantly better for legal content than either approach alone — precise terminology matching plus conceptual understanding.</p>
+              <p><strong>Recommendation:</strong> Phase 3 deployment for knowledge management and legal research use cases. Preferred over third-party vector databases (Pinecone, Weaviate) because it keeps all data within the Azure security perimeter.</p>
+            </div>
+          </div>
+
+          <div class="tech-item">
+            <div class="tech-item-header" onclick="toggleTech(this)">
+              <span class="badge badge-gray">Evaluate at 12 months</span>
+              <span class="tech-item-name">PostgreSQL + pgvector</span>
+              <span style="font-size:0.78rem;color:var(--text-mute)">Vector storage alternative</span>
+              <svg style="width:14px;height:14px;transition:transform 0.2s;opacity:0.4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+            </div>
+            <div class="tech-item-body collapsed">
+              <p><strong>Assessment:</strong> A viable lighter alternative to Azure AI Search for lower-volume workloads. Deferred to avoid introducing a second database platform before Azure AI Search capability is established and its fit is proven.</p>
+              <p><strong>Recommendation:</strong> Reassess at the 12-month governance review if Azure AI Search proves over-engineered for specific use cases.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S3: Target Architecture ══ -->
+    <div class="section" id="s3">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">03</span>
+        <span class="section-title">Target Architecture</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <!-- 3.1 Full Stack -->
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.1</span>
+            <span class="subsection-title">Full stack overview</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>The diagram below shows the complete target architecture, organized top-to-bottom as a trust hierarchy: users → identity → client surfaces → API/middle tier → MCP governance → MCP connectors → data. Hover over any layer for details. The colour coding reflects stack status: teal = existing, coral = new additions, purple = expanded usage, gray = governance/infrastructure.</p>
+
+            <div class="diagram-card">
+              <div class="diagram-header">
+                <span class="diagram-title">Figure 1 — Full target architecture stack</span>
+                <span class="diagram-caption">Hover layers for detail</span>
+              </div>
+              <div class="diagram-body">
+                <svg class="diag-svg" viewBox="0 0 760 820" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                      <path d="M2 1L8 5L2 9" fill="none" stroke="#aaa" stroke-width="1.5"/>
+                    </marker>
+                  </defs>
+
+                  <!-- Layer labels -->
+                  <text x="10" y="38" font-size="10" fill="#aaa" font-family="IBM Plex Mono">USERS</text>
+                  <g class="node-box" title="User personas">
+                    <rect x="10" y="44" width="235" height="44" rx="6" fill="#f1efea" stroke="#ccc" stroke-width="0.5"/>
+                    <text x="127" y="62" font-size="12" font-weight="600" text-anchor="middle" fill="#1a2744">Attorneys / staff</text>
+                    <text x="127" y="78" font-size="10" text-anchor="middle" fill="#888">Cowork · firm apps</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="260" y="44" width="220" height="44" rx="6" fill="#f1efea" stroke="#ccc" stroke-width="0.5"/>
+                    <text x="370" y="62" font-size="12" font-weight="600" text-anchor="middle" fill="#1a2744">Developers</text>
+                    <text x="370" y="78" font-size="10" text-anchor="middle" fill="#888">Claude Code · API keys</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="495" y="44" width="255" height="44" rx="6" fill="#f1efea" stroke="#ccc" stroke-width="0.5"/>
+                    <text x="622" y="62" font-size="12" font-weight="600" text-anchor="middle" fill="#1a2744">Firm admins</text>
+                    <text x="622" y="78" font-size="10" text-anchor="middle" fill="#888">Plugin marketplace · provisioning</text>
+                  </g>
+
+                  <line x1="380" y1="88" x2="380" y2="108" stroke="#ccc" stroke-width="1" marker-end="url(#arr)"/>
+
+                  <!-- Identity -->
+                  <text x="10" y="118" font-size="10" fill="#aaa" font-family="IBM Plex Mono">IDENTITY</text>
+                  <g class="node-box">
+                    <rect x="10" y="124" width="740" height="50" rx="6" fill="#f1efea" stroke="#888" stroke-width="0.5"/>
+                    <text x="380" y="145" font-size="13" font-weight="700" text-anchor="middle" fill="#1a2744">Azure Active Directory</text>
+                    <text x="380" y="163" font-size="10" text-anchor="middle" fill="#666">SSO (SAML 2.0) · SCIM provisioning · Conditional Access · ethical wall groups</text>
+                  </g>
+
+                  <line x1="380" y1="174" x2="380" y2="194" stroke="#ccc" stroke-width="1" marker-end="url(#arr)"/>
+
+                  <!-- Client surfaces -->
+                  <text x="10" y="204" font-size="10" fill="#aaa" font-family="IBM Plex Mono">CLIENT SURFACES</text>
+                  <g class="node-box">
+                    <rect x="10" y="210" width="230" height="54" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="125" y="232" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">SharePoint Online</text>
+                    <text x="125" y="250" font-size="10" text-anchor="middle" fill="#0f6e56">SPFx portals · dashboards</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="255" y="210" width="240" height="54" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="375" y="232" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">React + TypeScript</text>
+                    <text x="375" y="250" font-size="10" text-anchor="middle" fill="#0f6e56">Azure Static Web Apps</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="510" y="210" width="240" height="54" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="630" y="232" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">Claude Cowork</text>
+                    <text x="630" y="250" font-size="10" text-anchor="middle" fill="#0f6e56">Desktop app · plugin marketplace</text>
+                  </g>
+
+                  <line x1="380" y1="264" x2="380" y2="284" stroke="#ccc" stroke-width="1" marker-end="url(#arr)"/>
+
+                  <!-- Middle tier -->
+                  <text x="10" y="294" font-size="10" fill="#aaa" font-family="IBM Plex Mono">API / MIDDLE TIER</text>
+                  <g class="node-box">
+                    <rect x="10" y="300" width="340" height="54" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                    <text x="180" y="322" font-size="12" font-weight="700" text-anchor="middle" fill="#3c3489">.NET (C#) — Azure App Service</text>
+                    <text x="180" y="340" font-size="10" text-anchor="middle" fill="#534ab7">Business logic APIs · matter services · auth</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="365" y="300" width="185" height="54" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                    <text x="457" y="322" font-size="12" font-weight="700" text-anchor="middle" fill="#3c3489">Node.js / TS</text>
+                    <text x="457" y="340" font-size="10" text-anchor="middle" fill="#534ab7">MCP servers (new)</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="565" y="300" width="185" height="54" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                    <text x="657" y="322" font-size="12" font-weight="700" text-anchor="middle" fill="#3c3489">Python</text>
+                    <text x="657" y="340" font-size="10" text-anchor="middle" fill="#534ab7">AI pipelines · RAG (new)</text>
+                  </g>
+
+                  <line x1="380" y1="354" x2="380" y2="374" stroke="#ccc" stroke-width="1" marker-end="url(#arr)"/>
+
+                  <!-- MCP Gateway -->
+                  <text x="10" y="384" font-size="10" fill="#aaa" font-family="IBM Plex Mono">MCP GOVERNANCE</text>
+                  <g class="node-box">
+                    <rect x="10" y="390" width="740" height="50" rx="6" fill="#f1efea" stroke="#888" stroke-width="0.5"/>
+                    <text x="380" y="411" font-size="13" font-weight="700" text-anchor="middle" fill="#1a2744">MCP Governance Gateway — Azure Container Apps</text>
+                    <text x="380" y="429" font-size="10" text-anchor="middle" fill="#666">Allowlist · credential passthrough (Key Vault) · audit logging · prompt injection detection</text>
+                  </g>
+
+                  <line x1="380" y1="440" x2="380" y2="460" stroke="#ccc" stroke-width="1" marker-end="url(#arr)"/>
+
+                  <!-- MCP Connectors -->
+                  <text x="10" y="470" font-size="10" fill="#aaa" font-family="IBM Plex Mono">MCP CONNECTORS (isolated Azure Container Apps)</text>
+                  <g class="node-box">
+                    <rect x="10" y="476" width="171" height="54" rx="6" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                    <text x="95" y="498" font-size="12" font-weight="700" text-anchor="middle" fill="#712b13">iManage Cloud</text>
+                    <text x="95" y="516" font-size="10" text-anchor="middle" fill="#993c1d">Node.js · OAuth 2.0 ★</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="196" y="476" width="171" height="54" rx="6" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                    <text x="281" y="498" font-size="12" font-weight="700" text-anchor="middle" fill="#712b13">Microsoft 365</text>
+                    <text x="281" y="516" font-size="10" text-anchor="middle" fill="#993c1d">Graph API · Teams · SPO</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="382" y="476" width="171" height="54" rx="6" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                    <text x="467" y="498" font-size="12" font-weight="700" text-anchor="middle" fill="#712b13">Internal APIs</text>
+                    <text x="467" y="516" font-size="10" text-anchor="middle" fill="#993c1d">.NET adapter · SQL Server</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="568" y="476" width="182" height="54" rx="6" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                    <text x="659" y="498" font-size="12" font-weight="700" text-anchor="middle" fill="#712b13">Azure DevOps</text>
+                    <text x="659" y="516" font-size="10" text-anchor="middle" fill="#993c1d">Boards · Repos · Pipelines</text>
+                  </g>
+
+                  <line x1="380" y1="530" x2="380" y2="550" stroke="#ccc" stroke-width="1" marker-end="url(#arr)"/>
+
+                  <!-- Data -->
+                  <text x="10" y="560" font-size="10" fill="#aaa" font-family="IBM Plex Mono">DATA</text>
+                  <g class="node-box">
+                    <rect x="10" y="566" width="168" height="54" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="94" y="588" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">SQL Server</text>
+                    <text x="94" y="606" font-size="10" text-anchor="middle" fill="#0f6e56">Transactional · matter DB</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="193" y="566" width="168" height="54" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="277" y="588" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">Azure AI Search</text>
+                    <text x="277" y="606" font-size="10" text-anchor="middle" fill="#0f6e56">Vector + keyword · RAG</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="376" y="566" width="185" height="54" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="468" y="588" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">Azure Blob Storage</text>
+                    <text x="468" y="606" font-size="10" text-anchor="middle" fill="#0f6e56">Doc staging · embeddings</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="576" y="566" width="174" height="54" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="663" y="588" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">Azure Key Vault</text>
+                    <text x="663" y="606" font-size="10" text-anchor="middle" fill="#0f6e56">MCP credentials</text>
+                  </g>
+
+                  <!-- Delivery pipeline band -->
+                  <text x="10" y="642" font-size="10" fill="#aaa" font-family="IBM Plex Mono">DELIVERY PIPELINE</text>
+                  <g class="node-box">
+                    <rect x="10" y="648" width="740" height="50" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                    <text x="380" y="669" font-size="13" font-weight="700" text-anchor="middle" fill="#3c3489">Claude Code + Azure DevOps</text>
+                    <text x="380" y="687" font-size="10" text-anchor="middle" fill="#534ab7">CLAUDE.md per repo · PR review subagent · test gen · pre-deploy gate · CI/CD pipeline</text>
+                  </g>
+
+                  <!-- Security band -->
+                  <text x="10" y="718" font-size="10" fill="#aaa" font-family="IBM Plex Mono">SECURITY &amp; OBSERVABILITY</text>
+                  <g class="node-box">
+                    <rect x="10" y="724" width="740" height="50" rx="6" fill="#f1efea" stroke="#888" stroke-width="0.5"/>
+                    <text x="380" y="745" font-size="13" font-weight="700" text-anchor="middle" fill="#1a2744">Azure Monitor · Microsoft Sentinel · Application Insights</text>
+                    <text x="380" y="763" font-size="10" text-anchor="middle" fill="#666">MCP audit logs · matter access logs · DLP · CVE alerting · usage analytics</text>
+                  </g>
+
+                  <!-- Legend -->
+                  <rect x="10" y="790" width="90" height="22" rx="4" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                  <text x="55" y="805" font-size="9" text-anchor="middle" fill="#085041">Existing stack</text>
+                  <rect x="115" y="790" width="90" height="22" rx="4" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                  <text x="160" y="805" font-size="9" text-anchor="middle" fill="#712b13">New — add now</text>
+                  <rect x="220" y="790" width="110" height="22" rx="4" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                  <text x="275" y="805" font-size="9" text-anchor="middle" fill="#3c3489">Expanded usage</text>
+                  <rect x="345" y="790" width="120" height="22" rx="4" fill="#f1efea" stroke="#888" stroke-width="0.5"/>
+                  <text x="405" y="805" font-size="9" text-anchor="middle" fill="#555">Governance / infra</text>
+                  <text x="480" y="805" font-size="9" fill="#993c1d">★ = first reference implementation</text>
+                </svg>
+              </div>
+            </div>
+
+            <p>The architecture enforces a strict top-to-bottom trust hierarchy. No data layer component is directly reachable from any client surface — everything passes through the .NET API layer or an MCP connector, both of which enforce Azure AD identity. The MCP governance gateway sits between the middle tier and every connector, meaning all connector traffic is audited regardless of which client surface initiated it.</p>
+          </div>
+        </div>
+
+        <!-- 3.2 Identity -->
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.2</span>
+            <span class="subsection-title">Identity layer — Azure Active Directory</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Azure AD is the single identity plane for all Claude products and MCP connectors. Three capabilities are required:</p>
+            <ul>
+              <li><strong>SSO via SAML 2.0</strong> — all Claude products authenticate against the firm's Azure AD tenant. No separate credentials for Cowork, Claude.ai, or Code.</li>
+              <li><strong>SCIM provisioning</strong> — the Anthropic Enterprise admin panel is provisioned from Azure AD group membership. Account deactivation on departure or matter roll-off propagates automatically.</li>
+              <li><strong>Conditional Access</strong> — MCP connector access and Claude Code provisioning are gated by Azure AD group membership. Access is role-based and cannot be self-provisioned.</li>
+              <li><strong>Ethical wall groups</strong> — attorneys subject to information barriers are excluded from corresponding iManage matter workspaces. The MCP connector inherits this by passing the user's own OAuth token rather than a service account.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3.3 Personas -->
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.3</span>
+            <span class="subsection-title">Client surfaces and persona model</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Claude is deployed across four user personas, each with a different primary surface, tool access level, and provisioning tier. The model is a spectrum — technical sophistication increases left to right — with a deliberate career path built in.</p>
+
+            <div class="persona-grid">
+              <div class="persona-col">
+                <div class="persona-head">
+                  <div class="persona-role">Attorneys</div>
+                  <div class="persona-desc">Knowledge workers</div>
+                </div>
+                <div class="persona-row persona-surface">
+                  <div class="persona-row-label">Primary surface</div>
+                  <div class="persona-row-value">Claude Cowork (desktop + firm plugins)</div>
+                </div>
+                <div class="persona-row persona-does">
+                  <div class="persona-row-label">What they do</div>
+                  <div class="persona-row-value">Consume AI — doc review, drafting, research, summarization</div>
+                </div>
+                <div class="persona-row persona-plan">
+                  <div class="persona-row-label">Plan tier</div>
+                  <div class="persona-row-value">Enterprise</div>
+                </div>
+                <div class="persona-row persona-ad">
+                  <div class="persona-row-label">Azure AD group</div>
+                  <div class="persona-row-value">mwe-claude-attorneys</div>
+                </div>
+              </div>
+              <div class="persona-col">
+                <div class="persona-head">
+                  <div class="persona-role">Legal ops</div>
+                  <div class="persona-desc">Power users</div>
+                </div>
+                <div class="persona-row persona-surface">
+                  <div class="persona-row-label">Primary surface</div>
+                  <div class="persona-row-value">Cowork + advanced plugins + Claude.ai</div>
+                </div>
+                <div class="persona-row persona-does">
+                  <div class="persona-row-label">What they do</div>
+                  <div class="persona-row-value">Configure AI — workflows, plugins, scheduled tasks, reports</div>
+                </div>
+                <div class="persona-row persona-plan">
+                  <div class="persona-row-label">Plan tier</div>
+                  <div class="persona-row-value">Enterprise + Max</div>
+                </div>
+                <div class="persona-row persona-ad">
+                  <div class="persona-row-label">Azure AD group</div>
+                  <div class="persona-row-value">mwe-claude-powerusers</div>
+                </div>
+              </div>
+              <div class="persona-col">
+                <div class="persona-head">
+                  <div class="persona-role">AI Solutions Analysts</div>
+                  <div class="persona-desc">KM · prompt engineers</div>
+                </div>
+                <div class="persona-row persona-surface">
+                  <div class="persona-row-label">Primary surface</div>
+                  <div class="persona-row-value">Cowork + Claude.ai + Claude Code (light)</div>
+                </div>
+                <div class="persona-row persona-does">
+                  <div class="persona-row-label">What they do</div>
+                  <div class="persona-row-value">Build AI tools — skills, prompts, evals, plugin specs, CLAUDE.md</div>
+                </div>
+                <div class="persona-row persona-plan">
+                  <div class="persona-row-label">Plan tier</div>
+                  <div class="persona-row-value">Enterprise + Max</div>
+                </div>
+                <div class="persona-row persona-ad">
+                  <div class="persona-row-label">Azure AD group</div>
+                  <div class="persona-row-value">mwe-claude-analysts</div>
+                </div>
+              </div>
+              <div class="persona-col">
+                <div class="persona-head">
+                  <div class="persona-role">Developers</div>
+                  <div class="persona-desc">Engineers · DevOps</div>
+                </div>
+                <div class="persona-row persona-surface">
+                  <div class="persona-row-label">Primary surface</div>
+                  <div class="persona-row-value">Claude Code + Cowork + API keys</div>
+                </div>
+                <div class="persona-row persona-does">
+                  <div class="persona-row-label">What they do</div>
+                  <div class="persona-row-value">Build the platform — MCP connectors, APIs, apps, pipelines, infra</div>
+                </div>
+                <div class="persona-row persona-plan">
+                  <div class="persona-row-label">Plan tier</div>
+                  <div class="persona-row-value">Enterprise + Max</div>
+                </div>
+                <div class="persona-row persona-ad">
+                  <div class="persona-row-label">Azure AD group</div>
+                  <div class="persona-row-value">mwe-claude-developers</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout info" style="margin-top:1rem">
+              <div class="callout-label">CAREER PATH</div>
+              <div class="callout-body">The progression from Attorney → Power User → Solutions Analyst → Developer is intentional. Creating a visible path channels technical curiosity into the AI solutions function and builds a self-reinforcing talent pipeline. Persona assignment is based on role, not seniority.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3.4 MCP Gateway -->
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.4</span>
+            <span class="subsection-title">MCP governance gateway</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>The MCP governance gateway is the most important new infrastructure component. It is a lightweight proxy — hosted on Azure Container Apps — that sits between every Claude client surface and every MCP connector. All connector traffic routes through it without exception. It performs four functions:</p>
+            <ol>
+              <li><strong>Allowlist enforcement</strong> — only connectors explicitly listed in the organizational allowlist can be invoked. Attempts to call unlisted servers are blocked and logged.</li>
+              <li><strong>Credential management</strong> — connector credentials are retrieved from Azure Key Vault at runtime. No connector stores credentials in its container image or environment variables.</li>
+              <li><strong>Audit logging</strong> — every MCP tool call is logged with timestamp, Azure AD user identity, connector name, tool name, sanitized parameters, and response status. Forwarded to Microsoft Sentinel in real time.</li>
+              <li><strong>Prompt injection detection</strong> — tool call results are inspected for instruction-like content before being returned to Claude. Flagged results are quarantined pending review.</li>
+            </ol>
+            <div class="callout warn">
+              <div class="callout-label">SECURITY</div>
+              <div class="callout-body">Prompt injection is a material risk for agentic systems. A malicious instruction embedded in an iManage document Claude reads could attempt to redirect Claude's actions. The gateway's injection detection and the requirement for user confirmation on irreversible actions are the primary mitigations — both must be live before any connector touches client matter data.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3.5 iManage connector -->
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">3.5</span>
+            <span class="subsection-title">iManage connector — detailed flow</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>The iManage connector is the highest-priority build and the most sensitive from a professional responsibility standpoint. The critical design decision is <strong>user-token-passthrough</strong>: the connector passes the authenticated user's own OAuth token to iManage Cloud, not a privileged service account. Claude inherits the user's existing matter ACLs and ethical walls automatically.</p>
+
+            <div class="diagram-card">
+              <div class="diagram-header">
+                <span class="diagram-title">Figure 2 — iManage MCP connector: request flow</span>
+                <span class="diagram-caption">User token passthrough pattern</span>
+              </div>
+              <div class="diagram-body">
+                <svg class="diag-svg" viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                      <path d="M2 1L8 5L2 9" fill="none" stroke="#aaa" stroke-width="1.5"/>
+                    </marker>
+                  </defs>
+
+                  <g class="node-box">
+                    <rect x="10" y="50" width="160" height="60" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                    <text x="90" y="75" font-size="13" font-weight="700" text-anchor="middle" fill="#3c3489">Claude</text>
+                    <text x="90" y="93" font-size="11" text-anchor="middle" fill="#534ab7">Cowork or Code</text>
+                  </g>
+
+                  <line x1="170" y1="80" x2="205" y2="80" stroke="#aaa" stroke-width="1" marker-end="url(#arr2)"/>
+                  <text x="188" y="73" font-size="8" text-anchor="middle" fill="#aaa">tool call</text>
+
+                  <g class="node-box">
+                    <rect x="207" y="50" width="175" height="60" rx="6" fill="#f1efea" stroke="#888" stroke-width="0.5"/>
+                    <text x="294" y="75" font-size="13" font-weight="700" text-anchor="middle" fill="#1a2744">MCP gateway</text>
+                    <text x="294" y="93" font-size="11" text-anchor="middle" fill="#666">allowlist · audit · inject detect</text>
+                  </g>
+
+                  <line x1="382" y1="80" x2="415" y2="80" stroke="#aaa" stroke-width="1" marker-end="url(#arr2)"/>
+                  <text x="398" y="73" font-size="8" text-anchor="middle" fill="#aaa">+ user token</text>
+
+                  <g class="node-box">
+                    <rect x="417" y="50" width="185" height="60" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="509" y="75" font-size="13" font-weight="700" text-anchor="middle" fill="#085041">iManage MCP server</text>
+                    <text x="509" y="93" font-size="11" text-anchor="middle" fill="#0f6e56">Node.js / TypeScript</text>
+                  </g>
+
+                  <line x1="602" y1="80" x2="635" y2="80" stroke="#aaa" stroke-width="1" marker-end="url(#arr2)"/>
+                  <text x="618" y="73" font-size="8" text-anchor="middle" fill="#aaa">OAuth token</text>
+
+                  <g class="node-box">
+                    <rect x="637" y="50" width="110" height="60" rx="6" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                    <text x="692" y="75" font-size="13" font-weight="700" text-anchor="middle" fill="#712b13">iManage</text>
+                    <text x="692" y="93" font-size="11" text-anchor="middle" fill="#993c1d">Cloud API</text>
+                  </g>
+
+                  <!-- Tools -->
+                  <text x="509" y="132" font-size="9" fill="#888" text-anchor="middle" font-family="IBM Plex Mono">EXPOSED MCP TOOLS</text>
+                  <g class="node-box">
+                    <rect x="337" y="142" width="148" height="34" rx="5" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="411" y="163" font-size="11" text-anchor="middle" fill="#085041">search_matter</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="497" y="142" width="148" height="34" rx="5" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="571" y="163" font-size="11" text-anchor="middle" fill="#085041">get_document</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="337" y="188" width="148" height="34" rx="5" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="411" y="209" font-size="11" text-anchor="middle" fill="#085041">file_document</text>
+                  </g>
+                  <g class="node-box">
+                    <rect x="497" y="188" width="148" height="34" rx="5" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                    <text x="571" y="209" font-size="11" text-anchor="middle" fill="#085041">list_workspace</text>
+                  </g>
+
+                  <line x1="509" y1="110" x2="411" y2="142" stroke="#ccc" stroke-width="0.5"/>
+                  <line x1="509" y1="110" x2="571" y2="142" stroke="#ccc" stroke-width="0.5"/>
+                  <line x1="509" y1="110" x2="411" y2="188" stroke="#ccc" stroke-width="0.5"/>
+                  <line x1="509" y1="110" x2="571" y2="188" stroke="#ccc" stroke-width="0.5"/>
+
+                  <!-- Access control note -->
+                  <rect x="10" y="240" width="740" height="60" rx="6" fill="#f0f8f4" stroke="#0f6e56" stroke-width="0.5" stroke-dasharray="5 3"/>
+                  <text x="380" y="263" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">User token passthrough — access control enforcement</text>
+                  <text x="380" y="283" font-size="10" text-anchor="middle" fill="#0f6e56">The user's own iManage OAuth token is passed with every request. Claude cannot access any matter the authenticated user cannot already access directly in iManage. Ethical walls are inherited automatically.</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ S4: Delivery Pipeline ══ -->
+    <div class="section" id="s4">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">04</span>
+        <span class="section-title">Delivery Pipeline</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Claude Code is integrated into the Azure DevOps pipeline to automate quality and security checks at each stage. The diagram below shows the full pipeline from developer workstation to production.</p>
+
+        <div class="diagram-card">
+          <div class="diagram-header">
+            <span class="diagram-title">Figure 3 — Claude Code + Azure DevOps delivery pipeline</span>
+            <span class="diagram-caption">Six required stages for all Claude-integrated repos</span>
+          </div>
+          <div class="diagram-body">
+            <svg class="diag-svg" viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M2 1L8 5L2 9" fill="none" stroke="#aaa" stroke-width="1.5"/>
+                </marker>
+              </defs>
+
+              <!-- Dev workstation -->
+              <g class="node-box">
+                <rect x="10" y="40" width="170" height="60" rx="6" fill="#f1efea" stroke="#888" stroke-width="0.5"/>
+                <text x="95" y="64" font-size="12" font-weight="700" text-anchor="middle" fill="#1a2744">Dev workstation</text>
+                <text x="95" y="82" font-size="10" text-anchor="middle" fill="#666">CLAUDE.md per repo</text>
+              </g>
+
+              <line x1="180" y1="70" x2="213" y2="70" stroke="#aaa" stroke-width="1" marker-end="url(#arr3)"/>
+
+              <!-- PR review subagent -->
+              <g class="node-box">
+                <rect x="215" y="40" width="175" height="60" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                <text x="302" y="64" font-size="12" font-weight="700" text-anchor="middle" fill="#3c3489">PR review subagent</text>
+                <text x="302" y="82" font-size="10" text-anchor="middle" fill="#534ab7">Claude reviews, flags risks</text>
+              </g>
+
+              <line x1="390" y1="70" x2="423" y2="70" stroke="#aaa" stroke-width="1" marker-end="url(#arr3)"/>
+
+              <!-- Azure Repos -->
+              <g class="node-box">
+                <rect x="425" y="40" width="175" height="60" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                <text x="512" y="64" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">Azure Repos</text>
+                <text x="512" y="82" font-size="10" text-anchor="middle" fill="#0f6e56">Branch policies enforced</text>
+              </g>
+
+              <line x1="512" y1="100" x2="512" y2="130" stroke="#aaa" stroke-width="1" marker-end="url(#arr3)"/>
+
+              <!-- Azure Pipelines -->
+              <g class="node-box">
+                <rect x="425" y="132" width="175" height="60" rx="6" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+                <text x="512" y="156" font-size="12" font-weight="700" text-anchor="middle" fill="#085041">Azure Pipelines</text>
+                <text x="512" y="174" font-size="10" text-anchor="middle" fill="#0f6e56">Build · test · security scan</text>
+              </g>
+
+              <line x1="425" y1="162" x2="392" y2="162" stroke="#aaa" stroke-width="1" marker-end="url(#arr3)"/>
+
+              <!-- Claude Code hooks -->
+              <g class="node-box">
+                <rect x="215" y="132" width="175" height="60" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                <text x="302" y="156" font-size="12" font-weight="700" text-anchor="middle" fill="#3c3489">Claude Code hooks</text>
+                <text x="302" y="174" font-size="10" text-anchor="middle" fill="#534ab7">Test gen · scan · docs</text>
+              </g>
+
+              <line x1="512" y1="192" x2="512" y2="222" stroke="#aaa" stroke-width="1" marker-end="url(#arr3)"/>
+
+              <!-- Pre-deploy gate -->
+              <g class="node-box">
+                <rect x="425" y="224" width="175" height="60" rx="6" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+                <text x="512" y="248" font-size="12" font-weight="700" text-anchor="middle" fill="#3c3489">Pre-deploy gate</text>
+                <text x="512" y="266" font-size="10" text-anchor="middle" fill="#534ab7">Claude subagent validation</text>
+              </g>
+
+              <line x1="512" y1="284" x2="512" y2="314" stroke="#aaa" stroke-width="1" marker-end="url(#arr3)"/>
+
+              <!-- Staging -->
+              <g class="node-box">
+                <rect x="410" y="316" width="140" height="50" rx="6" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                <text x="480" y="338" font-size="12" font-weight="700" text-anchor="middle" fill="#712b13">Staging</text>
+                <text x="480" y="355" font-size="10" text-anchor="middle" fill="#993c1d">Sandbox validation</text>
+              </g>
+
+              <line x1="550" y1="341" x2="583" y2="341" stroke="#aaa" stroke-width="1" marker-end="url(#arr3)"/>
+
+              <!-- Production -->
+              <g class="node-box">
+                <rect x="585" y="316" width="140" height="50" rx="6" fill="#faece7" stroke="#993c1d" stroke-width="0.5"/>
+                <text x="655" y="338" font-size="12" font-weight="700" text-anchor="middle" fill="#712b13">Production</text>
+                <text x="655" y="355" font-size="10" text-anchor="middle" fill="#993c1d">Gated — lead approval</text>
+              </g>
+
+              <!-- CLAUDE.md contents -->
+              <rect x="10" y="130" width="190" height="236" rx="6" fill="none" stroke="#ddd" stroke-width="0.5" stroke-dasharray="4 3"/>
+              <text x="105" y="152" font-size="10" font-weight="600" text-anchor="middle" fill="#888">CLAUDE.md contains</text>
+              <text x="22" y="172" font-size="9" fill="#999">› Repo purpose + constraints</text>
+              <text x="22" y="190" font-size="9" fill="#999">› Coding standards</text>
+              <text x="22" y="208" font-size="9" fill="#999">› MCP servers in scope</text>
+              <text x="22" y="226" font-size="9" fill="#999">› iManage workspace IDs</text>
+              <text x="22" y="244" font-size="9" fill="#999">› What NOT to modify</text>
+              <text x="22" y="262" font-size="9" fill="#999">› Test requirements</text>
+              <text x="22" y="280" font-size="9" fill="#999">› Security rules</text>
+              <text x="22" y="298" font-size="9" fill="#999">› Deploy gating policy</text>
+
+              <!-- Azure Boards link -->
+              <g class="node-box">
+                <rect x="10" y="376" width="185" height="36" rx="6" fill="#f1efea" stroke="#888" stroke-width="0.5"/>
+                <text x="102" y="398" font-size="11" font-weight="600" text-anchor="middle" fill="#1a2744">Azure Boards MCP</text>
+              </g>
+              <line x1="102" y1="376" x2="102" y2="358" stroke="#ccc" stroke-width="0.5" stroke-dasharray="4 3"/>
+              <line x1="102" y1="358" x2="302" y2="358" stroke="#ccc" stroke-width="0.5" stroke-dasharray="4 3"/>
+              <line x1="302" y1="358" x2="302" y2="192" stroke="#ccc" stroke-width="0.5" stroke-dasharray="4 3"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="subsection" style="margin-top:1.5rem">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">4.1</span>
+            <span class="subsection-title">CLAUDE.md — the project memory file</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Every repository containing Claude-integrated code must include a <code style="background:#f0eee8;padding:0.1rem 0.35rem;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:0.85em">CLAUDE.md</code> file at its root. This file gives Claude Code persistent context about the repository without requiring developers to re-explain it every session. It defines: repository purpose and scope; coding standards; MCP servers in scope; iManage workspace IDs and matter data handling rules; systems explicitly off-limits; test requirements; security rules; and the deployment gating policy.</p>
+            <p>Changes to CLAUDE.md are treated as production code changes and require pull request review by the engineering lead. This makes the project's AI operating constraints visible, version-controlled, and auditable.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S5: Implementation Timing ══ -->
+    <div class="section" id="s5">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">05</span>
+        <span class="section-title">Implementation Timing</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Four phases over 12 months. Each phase's security and governance foundations are operational before the next phase depends on them. The iManage connector is built in Phase 2 — after the governance gateway is live — so it enters production with the full security architecture in place.</p>
+
+        <div class="timeline">
+          <div class="phase">
+            <div class="phase-label">
+              <div class="phase-num">PHASE 1</div>
+              <div class="phase-time">Months 1–3</div>
+            </div>
+            <div class="phase-body">
+              <div class="phase-items">
+                <div class="phase-item">Enterprise plan + Azure AD SSO/SCIM configuration</div>
+                <div class="phase-item">MCP governance gateway on Azure Container Apps</div>
+                <div class="phase-item">Azure Key Vault credential architecture</div>
+                <div class="phase-item">Cowork pilot — one practice group</div>
+                <div class="phase-item">Governance Standard sign-off (Risk + GC)</div>
+                <div class="phase-item">Python developer capacity decision (hire / upskill / contract)</div>
+              </div>
+              <div class="phase-deps">Dependencies: Anthropic enterprise agreement · Azure AD admin access · IT Security sign-off</div>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-label">
+              <div class="phase-num">PHASE 2</div>
+              <div class="phase-time">Months 3–6</div>
+            </div>
+            <div class="phase-body">
+              <div class="phase-items">
+                <div class="phase-item">iManage Cloud MCP connector (Node.js, reference implementation)</div>
+                <div class="phase-item">Azure DevOps pipeline automation — CLAUDE.md standards for all active repos</div>
+                <div class="phase-item">PR review + pre-deploy Claude Code subagents</div>
+                <div class="phase-item">Python AI pipeline environment</div>
+                <div class="phase-item">Azure Blob Storage for document staging</div>
+              </div>
+              <div class="phase-deps">Dependencies: Phase 1 gateway live · iManage Cloud OAuth app registration · Python developer in place</div>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-label">
+              <div class="phase-num">PHASE 3</div>
+              <div class="phase-time">Months 6–9</div>
+            </div>
+            <div class="phase-body">
+              <div class="phase-items">
+                <div class="phase-item">M365 Graph API MCP connector (Teams, SharePoint, calendar)</div>
+                <div class="phase-item">Cowork rollout to all practice groups</div>
+                <div class="phase-item">Private plugin marketplace — per practice group configuration</div>
+                <div class="phase-item">Azure AI Search RAG index — first knowledge management use cases</div>
+                <div class="phase-item">AI Solutions Analyst hiring and onboarding</div>
+              </div>
+              <div class="phase-deps">Dependencies: iManage connector in production · Phase 2 connector pattern proven · Azure AI Search provisioned</div>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-label">
+              <div class="phase-num">PHASE 4</div>
+              <div class="phase-time">Months 9–12</div>
+            </div>
+            <div class="phase-body">
+              <div class="phase-items">
+                <div class="phase-item">Internal APIs / SQL Server MCP adapter (.NET)</div>
+                <div class="phase-item">Custom practice-group skills library</div>
+                <div class="phase-item">Cross-app Cowork + Excel + PowerPoint workflows</div>
+                <div class="phase-item">First 90-day governance review and lessons captured</div>
+                <div class="phase-item">Productivity benchmarking baseline established</div>
+              </div>
+              <div class="phase-deps">Dependencies: Phase 3 complete · Analyst team operational · Governance review cadence established</div>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-label" style="background:var(--blue)">
+              <div class="phase-num">CONTINUOUS</div>
+              <div class="phase-time">Ongoing</div>
+            </div>
+            <div class="phase-body">
+              <div class="phase-items">
+                <div class="phase-item">CVE monitoring and patching (critical: 72hr · high: 14 days)</div>
+                <div class="phase-item">Quarterly Azure AD group membership validation</div>
+                <div class="phase-item">Skills versioning, deprecation, and marketplace hygiene</div>
+                <div class="phase-item">Sentinel alert rule tuning</div>
+                <div class="phase-item">Anthropic enterprise agreement annual renewal review</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">5.1</span>
+            <span class="subsection-title">Risks and mitigations</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+                <tbody>
+                  <tr><td>iManage connector scope creep</td><td>Time-box Phase 2 connector to four tools only. Additional tools in Phase 4 after security assessment.</td></tr>
+                  <tr><td>Prompt injection in production</td><td>Gateway injection detection must be live before any connector touches client matter data. Treat as a go/no-go gate.</td></tr>
+                  <tr><td>Python skills gap</td><td>Hire, upskill, or engage contractor by end of Phase 1. Claude Code assists but does not replace foundational Python knowledge.</td></tr>
+                  <tr><td>SharePoint dependency inertia</td><td>Establish clear guidance by Phase 1 end: portals → SharePoint, agentic workloads → Container Apps. No exceptions without IT Security approval.</td></tr>
+                  <tr><td>Governance sign-off delay</td><td>Governance Standard in review during Phase 1 so sign-off does not block Phase 2 iManage connector launch.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S6: Technology Rationale ══ -->
+    <div class="section" id="s6">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">06</span>
+        <span class="section-title">Technology Rationale</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">6.1</span>
+            <span class="subsection-title">Python — why it's essential for a .NET shop</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Python does not replace .NET for business logic APIs. The recommended pattern is clear: Python for AI pipeline components (document processing, embedding generation, RAG orchestration); .NET for business logic, matter services, and the internal API MCP adapter; Node.js/TypeScript for MCP connector servers.</p>
+            <p>Three reasons Python is non-negotiable for the AI pipeline layer:</p>
+            <ul>
+              <li><strong>Anthropic SDK maturity</strong> — Anthropic's Python SDK is more extensively documented, receives updates faster, and has far more community examples than the .NET SDK. Developers building against the Anthropic API find Python the path of least resistance.</li>
+              <li><strong>AI/ML ecosystem</strong> — the tooling for RAG pipelines, document chunking, embedding generation, and agent orchestration exists almost exclusively in Python. Libraries like sentence-transformers, PyMuPDF, and LangChain have no meaningful .NET equivalents. Building AI pipelines in .NET means reimplementing this ecosystem from scratch.</li>
+              <li><strong>Claude Code assistance</strong> — Claude Code generates high-quality Python, lowering the learning curve for developers coming from .NET or TypeScript backgrounds. The skills gap is real but bridgeable.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">6.2</span>
+            <span class="subsection-title">Node.js — natural extension of existing TypeScript investment</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Node.js is the natural choice for MCP connector development: the Anthropic MCP SDK has a TypeScript-first implementation; Claude Code itself runs on Node, so tooling alignment is tight; and the team already knows TypeScript, making this an extension of existing skills rather than a new language adoption. The iManage, M365, and Azure DevOps connectors should all be Node.js/TypeScript.</p>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">6.3</span>
+            <span class="subsection-title">Azure Container Apps — why not App Service</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Container Apps is preferred over App Service for MCP connector hosting for three specific reasons:</p>
+            <ul>
+              <li><strong>Per-connector isolation</strong> — each connector runs in its own container with its own managed identity, its own Key Vault access policy, and its own scale configuration. A security issue in one connector cannot directly compromise another.</li>
+              <li><strong>Scale-to-zero</strong> — most connectors will be idle most of the time. Container Apps scales to zero when idle and scales quickly on demand. App Service always-on plans would be unnecessary expense for low-traffic connectors.</li>
+              <li><strong>Dev/prod parity via Docker</strong> — Container Apps runs Docker containers, meaning the same image runs on a developer's Mac or Windows machine via Docker Desktop and in production. This is especially valuable on a mixed Mac/Windows team and eliminates environment mismatch issues.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-header" onclick="toggleSub(this)">
+            <span class="subsection-num">6.4</span>
+            <span class="subsection-title">Azure AI Search — why not third-party vector databases</span>
+            <svg class="sub-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+          </div>
+          <div class="subsection-body">
+            <p>Azure AI Search is recommended over third-party vector databases (Pinecone, Weaviate, Qdrant) for legal document retrieval because it keeps all data within the existing Azure security perimeter, integrates with Azure AD for access control, and eliminates a separate vendor relationship and data transfer boundary.</p>
+            <p>Hybrid search — combining semantic vector search with traditional keyword search — is the right mode for legal content. Legal documents require precise terminology matching (clause numbers, defined terms, statutory citations) AND conceptual understanding (finding precedents by concept rather than exact phrase). Azure AI Search supports this hybrid mode natively; most standalone vector databases require separate keyword search infrastructure alongside them.</p>
+            <div class="callout info">
+              <div class="callout-label">DECISION</div>
+              <div class="callout-body">Third-party vector databases are explicitly excluded from the recommended stack. They would require a new vendor relationship, data outside the Azure security perimeter, additional operational overhead, and a separate access control model — none justified by any capability gap in Azure AI Search for the firm's use cases.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S7: Security ══ -->
+    <div class="section" id="s7">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">07</span>
+        <span class="section-title">Security Architecture Summary</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <p>Security is built into the architecture rather than layered on after the fact. The six key controls:</p>
+
+        <div class="two-col" style="margin-top:1.25rem">
+          <div class="info-card">
+            <div class="info-card-label">User token passthrough</div>
+            <div class="info-card-value">The iManage connector passes the authenticated user's own OAuth token — not a service account. Claude inherits existing matter ACLs and ethical walls automatically. No new privilege escalation surface.</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">MCP governance gateway</div>
+            <div class="info-card-value">Every connector call routes through the gateway — it cannot be bypassed. Enforces allowlist, retrieves credentials from Key Vault, logs all tool calls to Sentinel, inspects results for prompt injection.</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Credential architecture</div>
+            <div class="info-card-value">No credentials in code, container images, or environment files. All secrets in Azure Key Vault. Connectors authenticate to Key Vault using managed identity — no secrets passed between components as configuration values.</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Prompt injection defense</div>
+            <div class="info-card-value">Content Claude reads via MCP (documents, emails, API responses) is inspected before being returned to Claude. Flagged results are quarantined. Developers treat all MCP-retrieved content as untrusted input.</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Audit and observability</div>
+            <div class="info-card-value">Every MCP tool call produces a Sentinel log entry with user identity, connector, tool, and sanitized parameters. Anomalous matter access, high-volume usage, and credential anomalies trigger alerts. Monthly usage reports to AI Strategy.</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">CVE management</div>
+            <div class="info-card-value">Container images scanned on build and weekly thereafter. Critical CVEs patched and redeployed within 72 hours. High CVEs within 14 days. Affected connector suspended if patch unavailable within the timeline.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ Appendix: Glossary ══ -->
+    <div class="section" id="sa">
+      <div class="section-header" onclick="toggleSection(this)">
+        <span class="section-num">A</span>
+        <span class="section-title">Glossary</span>
+        <svg class="section-chevron" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l5 5 5-5"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+            <tbody>
+              <tr><td>Claude Cowork</td><td>Anthropic's desktop AI productivity platform for knowledge workers. Supports multi-step agentic tasks, file access, MCP connectors, and a private plugin marketplace.</td></tr>
+              <tr><td>Claude Code</td><td>Anthropic's agentic coding tool operating in the terminal. Used by developers and AI solutions analysts for software development, MCP connector building, and pipeline automation.</td></tr>
+              <tr><td>MCP (Model Context Protocol)</td><td>An open standard that allows Claude to connect to and act on external systems via a defined tool interface. Connectors expose named tools Claude can invoke.</td></tr>
+              <tr><td>MCP connector</td><td>A software component implementing the MCP server specification for a specific external system (iManage, M365, etc.). Each connector exposes a set of named tools.</td></tr>
+              <tr><td>MCP governance gateway</td><td>The firm's centralized proxy through which all MCP connector traffic routes. Enforces allowlists, manages credentials, logs tool calls, and detects prompt injection.</td></tr>
+              <tr><td>CLAUDE.md</td><td>A project-level file giving Claude Code persistent context about a repository: purpose, standards, MCP servers in scope, and operational constraints.</td></tr>
+              <tr><td>Subagent</td><td>A specialized Claude Code agent committed to .claude/agents/ in a repository. Performs a specific recurring task automatically in the CI/CD pipeline.</td></tr>
+              <tr><td>RAG</td><td>Retrieval-Augmented Generation. Claude retrieves relevant documents from a search index before generating a response, grounding answers in actual firm content.</td></tr>
+              <tr><td>User token passthrough</td><td>The iManage connector design pattern where the user's own OAuth token (not a service account) is passed to iManage, so Claude inherits the user's existing access controls.</td></tr>
+              <tr><td>Ethical wall</td><td>An information barrier in iManage preventing specified users from accessing specific matter workspaces. Inherited by the connector via user token passthrough.</td></tr>
+              <tr><td>Prompt injection</td><td>An attack where malicious instructions in content Claude reads attempt to redirect Claude's actions. The governance gateway detects and quarantines suspicious results.</td></tr>
+              <tr><td>SCIM</td><td>System for Cross-domain Identity Management. Used to automatically provision and deprovision Claude accounts based on Azure AD group membership.</td></tr>
+              <tr><td>Azure Container Apps</td><td>Microsoft Azure's managed container hosting service, used for isolated, scalable MCP connector and governance gateway deployment.</td></tr>
+              <tr><td>Scale-to-zero</td><td>Azure Container Apps feature where containers with no active requests consume no compute resources, keeping idle infrastructure cost at zero.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout info" style="margin-top:1.5rem">
+          <div class="callout-label">COMPANION</div>
+          <div class="callout-body">This Technical Architecture document should be read alongside the <strong>Claude AI Platform — Governance and Implementation Standard v0.9</strong>, which defines access control policies, data handling obligations, professional responsibility considerations, and operational governance procedures.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+function toggleSection(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  body.classList.toggle('collapsed');
+  updateNav();
+}
+
+function toggleSub(header) {
+  header.classList.toggle('collapsed');
+  const body = header.nextElementSibling;
+  body.classList.toggle('collapsed');
+}
+
+function toggleTech(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('svg');
+  body.classList.toggle('collapsed');
+  chevron.style.transform = body.classList.contains('collapsed') ? '' : 'rotate(180deg)';
+}
+
+function navScrollTo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  // If it's a section, make sure it's open
+  if (el.classList.contains('section')) {
+    const header = el.querySelector('.section-header');
+    const body = el.querySelector('.section-body');
+    if (header && body && body.classList.contains('collapsed')) {
+      header.classList.remove('collapsed');
+      body.classList.remove('collapsed');
+    }
+  }
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateNav() {
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const scrollY = window.scrollY + 120;
+
+  let activeId = 'hero';
+  sections.forEach(s => {
+    if (s.offsetTop <= scrollY) activeId = s.id;
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    const targetId = link.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    if (targetId === activeId || (activeId === 'hero' && targetId === 'hero')) {
+      link.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', updateNav);
+
+// Start with all sections open
+document.querySelectorAll('.section-body').forEach(b => b.classList.remove('collapsed'));
+document.querySelectorAll('.section-header').forEach(h => h.classList.remove('collapsed'));
+// Start with all subsections open
+document.querySelectorAll('.subsection-body').forEach(b => b.classList.remove('collapsed'));
+document.querySelectorAll('.subsection-header').forEach(h => h.classList.remove('collapsed'));
+// Tech items start collapsed
+document.querySelectorAll('.tech-item-body').forEach(b => b.classList.add('collapsed'));
+</script>
+</body>
+</html>

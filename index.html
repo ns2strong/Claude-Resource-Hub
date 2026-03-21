@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWS Claude AI Platform — Resource Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1a2744;--navy-mid:#243560;--blue:#2e5fa5;--accent:#c8a04a;--accent-lt:#e8c87a;--bg:#f4f2ee;--bg-card:#fdfcfa;--text:#1c1c1e;--text-mid:#3d3d40;--text-mute:#6b6b70;--border:#dbd8d0;--teal:#0f6e56;--teal-lt:#e1f5ee;--purple:#534ab7;--purple-lt:#eeedfe;--amber:#854f0b;--amber-lt:#faeeda;--coral:#993c1d;--coral-lt:#faece7;--green:#375623;--green-lt:#e2efda;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#hero{background:linear-gradient(135deg,#0b1829 0%,#1a2744 45%,#0f1f35 100%);padding:5rem 2rem 4rem;text-align:center;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;top:-20%;left:50%;transform:translateX(-50%);width:900px;height:600px;border-radius:50%;background:radial-gradient(ellipse,rgba(200,160,74,.08) 0%,transparent 65%);pointer-events:none}
+#hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.firm-name{font-family:'IBM Plex Mono',monospace;font-size:.75rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:1.5rem}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:700;color:white;line-height:1.1;margin-bottom:.75rem}
+.hero-title span{color:var(--accent)}
+.hero-sub{font-size:1.05rem;color:rgba(255,255,255,.55);max-width:600px;margin:0 auto 3rem;line-height:1.7}
+.hero-meta{display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap}
+.hm-item{text-align:center}
+.hm-label{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);font-weight:600;margin-bottom:.2rem}
+.hm-value{font-size:.85rem;color:rgba(255,255,255,.75)}
+main{max-width:1100px;margin:0 auto;padding:3.5rem 2rem 6rem}
+.section-label{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem}
+.sl-line{flex:1;height:1px;background:var(--border)}
+.sl-text{font-size:.65rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-mute);font-weight:600;white-space:nowrap}
+.guide-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem;margin-bottom:3rem}
+.guide-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s,border-color .15s}
+.guide-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(26,39,68,.12);border-color:var(--blue)}
+.gc-accent-bar{height:4px}
+.gc-body{padding:1.5rem 1.5rem 1rem;flex:1}
+.gc-eyebrow{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:.6rem;opacity:.8}
+.gc-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:600;color:var(--navy);line-height:1.3;margin-bottom:.6rem}
+.gc-desc{font-size:.85rem;color:var(--text-mid);line-height:1.6}
+.gc-tags{padding:0 1.5rem 1rem;display:flex;gap:.35rem;flex-wrap:wrap}
+.gc-tag{font-size:.66rem;font-weight:600;letter-spacing:.04em;padding:.18rem .5rem;border-radius:3px;background:#f0eee8;color:var(--text-mute);border:1px solid var(--border)}
+.gc-footer{padding:.85rem 1.5rem;border-top:1px solid var(--border);background:#f8f7f4;display:flex;align-items:center;justify-content:space-between}
+.gc-version{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--text-mute)}
+.gc-cta{font-size:.78rem;font-weight:600;color:var(--blue);display:flex;align-items:center;gap:.3rem}
+.gc-arrow{transition:transform .15s}
+.guide-card:hover .gc-arrow{transform:translateX(3px)}
+.guide-card.featured{grid-column:1/-1;flex-direction:row}
+.guide-card.featured .gc-accent-bar{width:4px;height:auto;flex-shrink:0}
+.guide-card.featured .gc-body{padding:2rem;flex:1}
+.guide-card.featured .gc-tags{padding:0 2rem 1.5rem}
+.guide-card.featured .gc-footer{padding:1rem 2rem}
+.guide-card.featured .gc-title{font-size:1.3rem}
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:3rem}
+.qr-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.25rem}
+.qr-title{font-size:.82rem;font-weight:600;color:var(--navy);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+.qr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.qr-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:.25rem}
+.qr-list li{font-size:.79rem;color:var(--text-mid);line-height:1.4;padding-left:.85rem;position:relative}
+.qr-list li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
+.audience-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:3rem}
+.aud-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem}
+.aud-role{font-size:.78rem;font-weight:600;color:var(--navy);margin-bottom:.35rem}
+.aud-desc{font-size:.75rem;color:var(--text-mute);margin-bottom:.6rem;line-height:1.4}
+.aud-guides{display:flex;flex-direction:column;gap:.2rem}
+.aud-guide-link{font-size:.73rem;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:.25rem;padding:.2rem 0;border-bottom:1px solid var(--border);transition:color .1s}
+.aud-guide-link:last-child{border-bottom:none}
+.aud-guide-link:hover{color:var(--navy)}
+.aud-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.status-bar{background:var(--navy);border-radius:8px;padding:1.25rem 1.75rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;margin-bottom:3rem}
+.sb-item{display:flex;align-items:center;gap:.5rem}
+.sb-dot{width:8px;height:8px;border-radius:50%}
+.sb-label{font-size:.75rem;color:rgba(255,255,255,.6)}
+.sb-value{font-size:.78rem;color:rgba(255,255,255,.85);font-weight:500}
+.sb-divider{width:1px;height:20px;background:rgba(255,255,255,.15)}
+footer{text-align:center;padding:2rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--text-mute)}
+footer strong{color:var(--text)}
+@media(max-width:700px){.guide-card.featured{flex-direction:column}.guide-card.featured .gc-accent-bar{width:auto;height:4px}.audience-strip{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.audience-strip{grid-template-columns:1fr}.hero-meta{gap:1.5rem}}
+</style>
+</head>
+<body>
+
+<div id="hero">
+  <div class="firm-name">McDermott Will &amp; Schulte LLP</div>
+  <h1 class="hero-title">Claude AI Platform<br><span>Resource Hub</span></h1>
+  <p class="hero-sub">Technical guides, governance standards, and implementation references for the MWS Claude AI platform rollout — from architecture through delivery automation to ongoing maintenance.</p>
+  <div class="hero-meta">
+    <div class="hm-item"><div class="hm-label">Documents</div><div class="hm-value">5 guides</div></div>
+    <div class="hm-item"><div class="hm-label">Status</div><div class="hm-value">In review · March 2026</div></div>
+    <div class="hm-item"><div class="hm-label">Platform</div><div class="hm-value">Claude Cowork · Code · API · MCP</div></div>
+    <div class="hm-item"><div class="hm-label">Owner</div><div class="hm-value">AI Strategy &amp; Technology</div></div>
+  </div>
+</div>
+
+<main>
+
+  <div class="status-bar">
+    <div class="sb-item"><div class="sb-dot" style="background:#c8a04a"></div><span class="sb-label">Governance Standard</span><span class="sb-value">v0.9 · Pending GC/IT Security sign-off</span></div>
+    <div class="sb-divider"></div>
+    <div class="sb-item"><div class="sb-dot" style="background:#5dcaa5"></div><span class="sb-label">Technical Architecture</span><span class="sb-value">v1.0 · Engineering review</span></div>
+    <div class="sb-divider"></div>
+    <div class="sb-item"><div class="sb-dot" style="background:#5dcaa5"></div><span class="sb-label">Delivery Automation</span><span class="sb-value">v1.0 · Active</span></div>
+    <div class="sb-divider"></div>
+    <div class="sb-item"><div class="sb-dot" style="background:#5dcaa5"></div><span class="sb-label">Handoff &amp; Lifecycle</span><span class="sb-value">v1.0 · Active</span></div>
+    <div class="sb-divider"></div>
+    <div class="sb-item"><div class="sb-dot" style="background:#5dcaa5"></div><span class="sb-label">QA &amp; Test Automation</span><span class="sb-value">v1.0 · Active</span></div>
+  </div>
+
+  <div class="section-label"><div class="sl-line"></div><div class="sl-text">Platform guides</div><div class="sl-line"></div></div>
+
+  <div class="guide-grid">
+
+    <a class="guide-card featured" href="MWS_Claude_Governance_Standard_v0.9.html">
+      <div class="gc-accent-bar" style="background:linear-gradient(to bottom,#1a2744,#2e5fa5)"></div>
+      <div style="display:flex;flex-direction:column;flex:1">
+        <div class="gc-body">
+          <div class="gc-eyebrow" style="color:var(--blue)">Governance &amp; compliance</div>
+          <div class="gc-title">Governance and Implementation Standard</div>
+          <div class="gc-desc">Access control model, MCP security architecture, data handling obligations, GDPR requirements, professional responsibility considerations (RPC 1.6), and operational governance. The foundational policy document — requires Risk/GC and IT Security sign-off before any MCP connector touches client matter data.</div>
+        </div>
+        <div class="gc-tags">
+          <span class="gc-tag">Access control</span><span class="gc-tag">MCP security</span><span class="gc-tag">Data handling</span><span class="gc-tag">GDPR</span><span class="gc-tag">iManage OAuth</span><span class="gc-tag">Incident response</span><span class="gc-tag">Persona model</span><span class="gc-tag">Approvals</span>
+        </div>
+        <div class="gc-footer">
+          <span class="gc-version">v0.9 · Pending sign-off</span>
+          <span class="gc-cta">Open guide <span class="gc-arrow">→</span></span>
+        </div>
+      </div>
+    </a>
+
+    <a class="guide-card" href="MWS_Claude_Technical_Architecture_v1.0.html">
+      <div class="gc-accent-bar" style="background:linear-gradient(90deg,var(--teal),#1d9e75)"></div>
+      <div class="gc-body">
+        <div class="gc-eyebrow" style="color:var(--teal)">Architecture &amp; infrastructure</div>
+        <div class="gc-title">Technical Architecture and Recommendations</div>
+        <div class="gc-desc">Full target stack diagram, current technology assessment, new technology recommendations (Python, Node.js, Azure Container Apps, Azure AI Search), iManage connector flow with user token passthrough, Azure DevOps pipeline, and phased 12-month implementation timeline.</div>
+      </div>
+      <div class="gc-tags">
+        <span class="gc-tag">Stack assessment</span><span class="gc-tag">Azure Container Apps</span><span class="gc-tag">iManage connector</span><span class="gc-tag">Python / Node.js</span><span class="gc-tag">12-month timeline</span>
+      </div>
+      <div class="gc-footer">
+        <span class="gc-version">v1.0 · Engineering review</span>
+        <span class="gc-cta">Open guide <span class="gc-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a class="guide-card" href="MWS_Claude_Delivery_Automation_v1.0.html">
+      <div class="gc-accent-bar" style="background:linear-gradient(90deg,var(--purple),#7f77dd)"></div>
+      <div class="gc-body">
+        <div class="gc-eyebrow" style="color:var(--purple)">Skills · Hooks · Subagents · Plugins</div>
+        <div class="gc-title">Delivery Automation and Extension Library</div>
+        <div class="gc-desc">Complete inventory of Claude Code skills, hooks, subagents, agent teams, and plugins across the full solution lifecycle — branding enforcement, coding standards, credential scanning, PR review, MCP connector scaffolding, deployment gates, and the MWS plugin architecture.</div>
+      </div>
+      <div class="gc-tags">
+        <span class="gc-tag">Skills &amp; hooks</span><span class="gc-tag">CI/CD automation</span><span class="gc-tag">Credential scanning</span><span class="gc-tag">PR review subagent</span><span class="gc-tag">Plugin architecture</span>
+      </div>
+      <div class="gc-footer">
+        <span class="gc-version">v1.0 · Active</span>
+        <span class="gc-cta">Open guide <span class="gc-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a class="guide-card" href="MWS_Claude_Solution_Handoff_v1.0.html">
+      <div class="gc-accent-bar" style="background:linear-gradient(90deg,var(--amber),#ef9f27)"></div>
+      <div class="gc-body">
+        <div class="gc-eyebrow" style="color:var(--amber)">Operations &amp; continuity</div>
+        <div class="gc-title">Solution Handoff and Lifecycle Management</div>
+        <div class="gc-desc">Processes for maintaining, extending, and transferring ownership of Claude-built solutions. Covers Cowork, Code-built, and Hybrid tiers. Includes the 30-day planned handoff playbook, unplanned handoff recovery, iManage re-authorisation, and the Solution Registry model.</div>
+      </div>
+      <div class="gc-tags">
+        <span class="gc-tag">Handoff process</span><span class="gc-tag">Solution Registry</span><span class="gc-tag">Ownership model</span><span class="gc-tag">Context file export</span><span class="gc-tag">Deprecation</span>
+      </div>
+      <div class="gc-footer">
+        <span class="gc-version">v1.0 · Active</span>
+        <span class="gc-cta">Open guide <span class="gc-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a class="guide-card" href="MWS_Claude_QA_Automation_v1.0.html">
+      <div class="gc-accent-bar" style="background:linear-gradient(90deg,var(--coral),#d85a30)"></div>
+      <div class="gc-body">
+        <div class="gc-eyebrow" style="color:var(--coral)">Quality assurance &amp; testing</div>
+        <div class="gc-title">QA and Test Automation Framework</div>
+        <div class="gc-desc">Five-layer testing pyramid: unit/connector tests, AI output evaluation (LLM-as-judge with calibrated rubrics), Playwright UI and E2E, k6 load and performance testing, and legal compliance / human acceptance. Covers grader type selection and the full Azure DevOps pipeline test sequence.</div>
+      </div>
+      <div class="gc-tags">
+        <span class="gc-tag">LLM-as-judge</span><span class="gc-tag">Playwright E2E</span><span class="gc-tag">k6 load testing</span><span class="gc-tag">Eval rubrics</span><span class="gc-tag">Legal compliance</span>
+      </div>
+      <div class="gc-footer">
+        <span class="gc-version">v1.0 · Active</span>
+        <span class="gc-cta">Open guide <span class="gc-arrow">→</span></span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="section-label"><div class="sl-line"></div><div class="sl-text">Start here — by role</div><div class="sl-line"></div></div>
+
+  <div class="audience-strip">
+    <div class="aud-card" style="border-top:3px solid var(--navy)">
+      <div class="aud-role">Risk / General Counsel</div>
+      <div class="aud-desc">Governance, professional responsibility, data handling, sign-off requirements</div>
+      <div class="aud-guides">
+        <a class="aud-guide-link" href="MWS_Claude_Governance_Standard_v0.9.html"><div class="aud-dot" style="background:var(--blue)"></div>Governance Standard — Sections 1–4</a>
+        <a class="aud-guide-link" href="MWS_Claude_Technical_Architecture_v1.0.html"><div class="aud-dot" style="background:var(--teal)"></div>Technical Architecture — Exec Summary</a>
+      </div>
+    </div>
+    <div class="aud-card" style="border-top:3px solid var(--blue)">
+      <div class="aud-role">IT Security / CISO</div>
+      <div class="aud-desc">MCP governance, connector security, audit logging, CVE management</div>
+      <div class="aud-guides">
+        <a class="aud-guide-link" href="MWS_Claude_Governance_Standard_v0.9.html"><div class="aud-dot" style="background:var(--blue)"></div>Governance Standard — Sections 3–4</a>
+        <a class="aud-guide-link" href="MWS_Claude_Technical_Architecture_v1.0.html"><div class="aud-dot" style="background:var(--teal)"></div>Technical Architecture — Section 7</a>
+        <a class="aud-guide-link" href="MWS_Claude_QA_Automation_v1.0.html"><div class="aud-dot" style="background:var(--coral)"></div>QA Framework — Section 9</a>
+      </div>
+    </div>
+    <div class="aud-card" style="border-top:3px solid var(--purple)">
+      <div class="aud-role">AI Solutions Analysts</div>
+      <div class="aud-desc">Building solutions, skills, plugins, QA rubrics, handoff management</div>
+      <div class="aud-guides">
+        <a class="aud-guide-link" href="MWS_Claude_Delivery_Automation_v1.0.html"><div class="aud-dot" style="background:var(--purple)"></div>Delivery Automation — Full document</a>
+        <a class="aud-guide-link" href="MWS_Claude_Solution_Handoff_v1.0.html"><div class="aud-dot" style="background:var(--amber)"></div>Handoff &amp; Lifecycle — Full document</a>
+        <a class="aud-guide-link" href="MWS_Claude_QA_Automation_v1.0.html"><div class="aud-dot" style="background:var(--coral)"></div>QA Framework — Sections 2–5</a>
+      </div>
+    </div>
+    <div class="aud-card" style="border-top:3px solid var(--teal)">
+      <div class="aud-role">Engineering / DevOps</div>
+      <div class="aud-desc">Stack, MCP connectors, pipeline, testing, infrastructure</div>
+      <div class="aud-guides">
+        <a class="aud-guide-link" href="MWS_Claude_Technical_Architecture_v1.0.html"><div class="aud-dot" style="background:var(--teal)"></div>Technical Architecture — Full document</a>
+        <a class="aud-guide-link" href="MWS_Claude_Delivery_Automation_v1.0.html"><div class="aud-dot" style="background:var(--purple)"></div>Delivery Automation — Sections 4–9</a>
+        <a class="aud-guide-link" href="MWS_Claude_QA_Automation_v1.0.html"><div class="aud-dot" style="background:var(--coral)"></div>QA Framework — Sections 4, 6–10</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label"><div class="sl-line"></div><div class="sl-text">Quick reference</div><div class="sl-line"></div></div>
+
+  <div class="qr-grid">
+    <div class="qr-card">
+      <div class="qr-title"><div class="qr-dot" style="background:var(--navy)"></div>Four persona tiers</div>
+      <ul class="qr-list">
+        <li><strong>Attorneys</strong> — Cowork + firm plugins · mwe-claude-attorneys</li>
+        <li><strong>Power users</strong> — Cowork + advanced plugins · mwe-claude-powerusers</li>
+        <li><strong>AI analysts</strong> — Cowork + Claude Code (light) · mwe-claude-analysts</li>
+        <li><strong>Developers</strong> — Claude Code + API keys · mwe-claude-developers</li>
+      </ul>
+    </div>
+    <div class="qr-card">
+      <div class="qr-title"><div class="qr-dot" style="background:var(--coral)"></div>Priority MCP connectors</div>
+      <ul class="qr-list">
+        <li><strong>iManage Cloud</strong> — Node.js, OAuth 2.0, user token passthrough ★ Build first</li>
+        <li><strong>Microsoft 365</strong> — Graph API, Teams, SharePoint · Phase 3</li>
+        <li><strong>Internal APIs</strong> — .NET adapter, SQL Server · Phase 4</li>
+        <li><strong>Azure DevOps</strong> — Boards, Repos, Pipelines · Phase 2</li>
+      </ul>
+    </div>
+    <div class="qr-card">
+      <div class="qr-title"><div class="qr-dot" style="background:var(--amber)"></div>Add-now technologies</div>
+      <ul class="qr-list">
+        <li><strong>Python</strong> — AI pipelines, RAG, embeddings. Hire/upskill by Phase 2.</li>
+        <li><strong>Node.js / TypeScript</strong> — MCP connector servers. Leverages existing TS.</li>
+        <li><strong>Azure Container Apps</strong> — MCP hosting. Scale-to-zero, isolated per connector.</li>
+        <li><strong>Azure AI Search</strong> — Hybrid RAG over document corpus. Phase 3.</li>
+      </ul>
+    </div>
+    <div class="qr-card">
+      <div class="qr-title"><div class="qr-dot" style="background:var(--purple)"></div>Non-bypassable hooks</div>
+      <ul class="qr-list">
+        <li><strong>credential-scan</strong> — PostToolUse:Write, every file, every time</li>
+        <li><strong>lint-on-write</strong> — PostToolUse:Write, ESLint/Black/dotnet format</li>
+        <li><strong>pre-commit-gate</strong> — Blocks .env/.key files, enforces commit format</li>
+        <li><strong>test-runner</strong> — PostToolUse:Write, related tests auto-run</li>
+      </ul>
+    </div>
+    <div class="qr-card">
+      <div class="qr-title"><div class="qr-dot" style="background:var(--teal)"></div>Handoff non-negotiables</div>
+      <ul class="qr-list">
+        <li>Every production solution: named owner AND deputy owner</li>
+        <li>Context files in Azure Repos before production registration</li>
+        <li>iManage OAuth re-authorised under new owner's identity on transfer</li>
+        <li>Old owner's tokens revoked within 24hr of departure</li>
+      </ul>
+    </div>
+    <div class="qr-card">
+      <div class="qr-title"><div class="qr-dot" style="background:var(--coral)"></div>Test grader selection</div>
+      <ul class="qr-list">
+        <li><strong>Deterministic</strong> — API status, schema, token passthrough, credentials</li>
+        <li><strong>LLM-graded</strong> — Brand voice, legal accuracy, completeness, disclaimer</li>
+        <li><strong>Human review</strong> — Rubric calibration, P1 acceptance, post-regression</li>
+        <li>Default: deterministic. LLM only when deterministic is insufficient.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-label"><div class="sl-line"></div><div class="sl-text">Platform principles</div><div class="sl-line"></div></div>
+
+  <div class="qr-grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))">
+    <div class="qr-card" style="border-left:3px solid var(--navy);border-radius:0 8px 8px 0">
+      <div class="qr-title" style="font-family:'Playfair Display',serif;font-size:.95rem">Identity-first</div>
+      <p style="font-size:.82rem;color:var(--text-mid);line-height:1.55;margin-top:.35rem">Every Claude action is traceable to an authenticated Azure AD user. No service accounts for matter-sensitive operations. The iManage connector passes the user's own OAuth token — Claude inherits their existing matter access and ethical walls.</p>
+    </div>
+    <div class="qr-card" style="border-left:3px solid var(--blue);border-radius:0 8px 8px 0">
+      <div class="qr-title" style="font-family:'Playfair Display',serif;font-size:.95rem">Hooks are non-bypassable</div>
+      <p style="font-size:.82rem;color:var(--text-mid);line-height:1.55;margin-top:.35rem">Skills rely on Claude recognising context. Hooks fire deterministically at lifecycle events regardless. Put mandatory governance controls — credential scanning, lint gates, security validation — in hooks, not skills.</p>
+    </div>
+    <div class="qr-card" style="border-left:3px solid var(--teal);border-radius:0 8px 8px 0">
+      <div class="qr-title" style="font-family:'Playfair Display',serif;font-size:.95rem">Document before deploying</div>
+      <p style="font-size:.82rem;color:var(--text-mid);line-height:1.55;margin-top:.35rem">If a Cowork solution's logic lives only in one person's session, it is in a pilot — not production. Context files in Azure Repos, a named deputy owner, and a Solution Registry entry are prerequisites for production status.</p>
+    </div>
+    <div class="qr-card" style="border-left:3px solid var(--amber);border-radius:0 8px 8px 0">
+      <div class="qr-title" style="font-family:'Playfair Display',serif;font-size:.95rem">SharePoint for portals only</div>
+      <p style="font-size:.82rem;color:var(--text-mid);line-height:1.55;margin-top:.35rem">SPFx is excellent for dashboards and document viewers. It cannot host MCP servers, run background agents, or support streaming responses. Agentic solutions go to Azure Container Apps — not SharePoint.</p>
+    </div>
+    <div class="qr-card" style="border-left:3px solid var(--purple);border-radius:0 8px 8px 0">
+      <div class="qr-title" style="font-family:'Playfair Display',serif;font-size:.95rem">Claude proposes, engineers decide</div>
+      <p style="font-size:.82rem;color:var(--text-mid);line-height:1.55;margin-top:.35rem">Claude Code operates in Plan mode for non-trivial changes. The deploy skill has <code style="background:#f0eee8;padding:.1rem .3rem;border-radius:3px;font-size:.82em">disable-model-invocation: true</code> — only a developer explicitly typing /deploy initiates a deployment.</p>
+    </div>
+    <div class="qr-card" style="border-left:3px solid var(--coral);border-radius:0 8px 8px 0">
+      <div class="qr-title" style="font-family:'Playfair Display',serif;font-size:.95rem">Deterministic graders first</div>
+      <p style="font-size:.82rem;color:var(--text-mid);line-height:1.55;margin-top:.35rem">Use deterministic graders wherever possible. Use LLM graders where deterministic is insufficient. LLM judges must agree with human labels on ≥90% of a calibration set before they are trusted in CI.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <strong>McDermott Will &amp; Schulte LLP</strong> · Claude AI Platform · AI Strategy &amp; Technology<br>
+  <span style="margin-top:.3rem;display:block">All documents are internal references. For questions contact the AI Strategy &amp; Technology team.</span>
+</footer>
+
+</body>
+</html>
