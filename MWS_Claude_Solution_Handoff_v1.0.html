@@ -185,6 +185,14 @@ td:first-child{font-weight:500;color:var(--text)}
 /* Scrollbar */
 #nav::-webkit-scrollbar-track{background:transparent}
 @media print{#nav,#tier-bar{display:none}#main{margin-left:0}.sb.col{display:block!important}}
+
+/* ── Breadcrumb ── */
+#breadcrumb{background:var(--navy-mid);border-bottom:1px solid rgba(255,255,255,.08);padding:.55rem 4rem;display:flex;align-items:center;gap:.5rem;font-size:.75rem;position:sticky;top:0;z-index:200}
+#breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .15s}
+#breadcrumb a:hover{color:var(--accent-lt)}
+#breadcrumb .bc-sep{color:rgba(255,255,255,.25);font-size:.65rem}
+#breadcrumb .bc-current{color:rgba(255,255,255,.8);font-weight:500}
+
 </style>
 </head>
 <body>
@@ -214,6 +222,8 @@ td:first-child{font-weight:500;color:var(--text)}
 </nav>
 
 <div id="main">
+<div id="breadcrumb"><a href="index.html">MWS Claude AI Platform</a><span class="bc-sep">›</span><span class="bc-current">Solution Handoff & Lifecycle</span></div>
+
 <div id="hero">
   <div class="he">Solution Handoff &amp; Lifecycle Management — v1.0 · March 2026</div>
   <div class="ht">Solution Handoff<br>&amp; Lifecycle Management</div>

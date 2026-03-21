@@ -350,6 +350,14 @@ td:first-child { font-weight: 500; color: var(--text); }
 #nav::-webkit-scrollbar { width: 4px; }
 #nav::-webkit-scrollbar-track { background: transparent; }
 #nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+/* ── Breadcrumb ── */
+#breadcrumb{background:var(--navy-mid);border-bottom:1px solid rgba(255,255,255,.08);padding:.55rem 4rem;display:flex;align-items:center;gap:.5rem;font-size:.75rem;position:sticky;top:0;z-index:200}
+#breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .15s}
+#breadcrumb a:hover{color:var(--accent-lt)}
+#breadcrumb .bc-sep{color:rgba(255,255,255,.25);font-size:.65rem}
+#breadcrumb .bc-current{color:rgba(255,255,255,.8);font-weight:500}
+
 </style>
 </head>
 <body>
@@ -387,6 +395,8 @@ td:first-child { font-weight: 500; color: var(--text); }
 <div id="main">
 
   <!-- Hero -->
+<div id="breadcrumb"><a href="index.html">MWS Claude AI Platform</a><span class="bc-sep">›</span><span class="bc-current">Technical Architecture</span></div>
+
   <div id="hero">
     <div class="hero-eyebrow">Technical Architecture &amp; Recommendations — v1.0 · March 2026</div>
     <div class="hero-title">Claude AI Platform</div>

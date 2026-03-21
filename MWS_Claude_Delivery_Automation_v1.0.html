@@ -200,6 +200,14 @@ td:first-child{font-weight:500;color:var(--text)}
 #nav::-webkit-scrollbar-track{background:transparent}
 
 @media print{#nav,#legend-bar{display:none}#main{margin-left:0}.section-body.collapsed{display:block!important}}
+
+/* ── Breadcrumb ── */
+#breadcrumb{background:var(--navy-mid);border-bottom:1px solid rgba(255,255,255,.08);padding:.55rem 4rem;display:flex;align-items:center;gap:.5rem;font-size:.75rem;position:sticky;top:0;z-index:200}
+#breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .15s}
+#breadcrumb a:hover{color:var(--accent-lt)}
+#breadcrumb .bc-sep{color:rgba(255,255,255,.25);font-size:.65rem}
+#breadcrumb .bc-current{color:rgba(255,255,255,.8);font-weight:500}
+
 </style>
 </head>
 <body>
@@ -231,6 +239,8 @@ td:first-child{font-weight:500;color:var(--text)}
 </nav>
 
 <div id="main">
+<div id="breadcrumb"><a href="index.html">MWS Claude AI Platform</a><span class="bc-sep">›</span><span class="bc-current">Delivery Automation</span></div>
+
   <div id="hero">
     <div class="hero-eyebrow">Skills · Hooks · Subagents · Plugins · Agent Teams — Delivery Automation Reference</div>
     <div class="hero-title">Delivery Automation<br>&amp; Extension Library</div>

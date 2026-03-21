@@ -193,6 +193,14 @@ td:first-child{font-weight:500;color:var(--text)}
 #nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
 
 @media print{#nav{display:none}#main{margin-left:0}.section-body.collapsed{display:block !important}}
+
+/* ── Breadcrumb ── */
+#breadcrumb{background:var(--navy-mid);border-bottom:1px solid rgba(255,255,255,.08);padding:.55rem 4rem;display:flex;align-items:center;gap:.5rem;font-size:.75rem;position:sticky;top:0;z-index:200}
+#breadcrumb a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .15s}
+#breadcrumb a:hover{color:var(--accent-lt)}
+#breadcrumb .bc-sep{color:rgba(255,255,255,.25);font-size:.65rem}
+#breadcrumb .bc-current{color:rgba(255,255,255,.8);font-weight:500}
+
 </style>
 </head>
 <body>
@@ -227,6 +235,8 @@ td:first-child{font-weight:500;color:var(--text)}
 </nav>
 
 <div id="main">
+<div id="breadcrumb"><a href="index.html">MWS Claude AI Platform</a><span class="bc-sep">›</span><span class="bc-current">Governance Standard</span></div>
+
   <div id="hero">
     <div class="hero-eyebrow">Governance and Implementation Standard — v0.9 · March 2026</div>
     <div class="hero-status"><div class="hero-status-dot"></div><div class="hero-status-text">Draft — Pending Risk / GC + IT Security sign-off</div></div>
