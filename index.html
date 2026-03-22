@@ -73,6 +73,34 @@ footer{text-align:center;padding:2rem;border-top:1px solid var(--border);font-si
 footer strong{color:var(--text)}
 @media(max-width:700px){.guide-card.featured{flex-direction:column}.guide-card.featured .gc-accent-bar{width:auto;height:4px}.audience-strip{grid-template-columns:1fr 1fr}}
 @media(max-width:500px){.audience-strip{grid-template-columns:1fr}.hero-meta{gap:1.5rem}}
+
+/* ── Hub responsive ── */
+@media(max-width:860px){
+  main{padding:2.5rem 1.5rem 4rem}
+  #hero{padding:3.5rem 1.5rem 3rem}
+  .guide-grid{grid-template-columns:1fr}
+  .guide-card.featured{flex-direction:column}
+  .guide-card.featured .gc-accent-bar{width:auto;height:4px}
+  .qr-grid{grid-template-columns:repeat(2,1fr)}
+  .status-bar{flex-direction:column;align-items:flex-start;gap:.75rem}
+  .sb-divider{display:none}
+}
+@media(max-width:600px){
+  #hero{padding:2.5rem 1.25rem 2.5rem}
+  .hero-title{font-size:clamp(1.7rem,8vw,2.5rem)}
+  .hero-sub{font-size:.92rem}
+  .hero-meta{flex-direction:column;gap:1rem;align-items:center}
+  main{padding:2rem 1.25rem 3rem}
+  .guide-grid,.qr-grid{grid-template-columns:1fr}
+  .audience-strip{grid-template-columns:1fr 1fr}
+  .section-label{margin-bottom:1rem}
+}
+@media(max-width:440px){
+  .audience-strip{grid-template-columns:1fr}
+  .qr-grid{grid-template-columns:1fr}
+  #hero{padding:2rem 1rem 2rem}
+}
+
 </style>
 </head>
 <body>
